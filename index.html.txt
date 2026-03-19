@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0c0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>QualityEye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0a0c0f;--card:#12161c;--card2:#181d24;--card3:#1e242d;
+  --line:#252d38;--line2:#2d3744;
+  --amber:#f5a623;--amber2:#ffbe4d;--amber3:#ffe0a0;
+  --red:#e8394a;--red2:#ff5566;--orange:#f57c23;--yellow:#f5c842;
+  --green:#22c55e;--green2:#4ade80;--blue:#3b82f6;--purple:#a855f7;
+  --text:#e2e8f2;--text2:#a0aab8;--text3:#5a6880;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);
+  --nav:62px;--radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;height:100dvh;overflow:hidden;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{font-family:var(--sans)}
+body.rtl{font-family:'Cairo',system-ui,sans-serif;direction:rtl}
+button{cursor:pointer;font-family:inherit;border:none;background:none;-webkit-appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+select{-webkit-appearance:none;font-family:inherit}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--line2);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px rgba(245,166,35,.5)}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+
+body.rtl .topbar{flex-direction:row-reverse}
+body.rtl .topbar-right{flex-direction:row-reverse}
+body.rtl .topbar-logo{flex-direction:row-reverse}
+body.rtl .area-bar{flex-direction:row-reverse}
+body.rtl .area-arr{right:auto;left:10px}
+body.rtl .area-sel{padding:9px 12px 9px 30px}
+body.rtl .def-head{flex-direction:row-reverse}
+body.rtl .def-foot{flex-direction:row-reverse}
+body.rtl .meta-row{flex-direction:row-reverse}
+body.rtl .risk-head{flex-direction:row-reverse}
+body.rtl .btn-row{flex-direction:row-reverse}
+body.rtl .pass-head{flex-direction:row-reverse}
+body.rtl .nav-badge{right:auto;left:calc(50% - 16px)}
+body.rtl .sett-row{flex-direction:row-reverse}
+body.rtl .met-wide{flex-direction:row-reverse}
+body.rtl .hist-item{flex-direction:row-reverse}
+body.rtl .hist-risk{text-align:left}
+body.rtl .hist-info{text-align:right}
+body.rtl .ar-item{flex-direction:row-reverse}
+body.rtl .ar-name{text-align:right}
+body.rtl .ar-cnt{text-align:left}
+body.rtl .act-item{flex-direction:row-reverse}
+body.rtl .act-txt{text-align:right}
+body.rtl .toast{border-left:none;border-right:3px solid var(--amber)}
+body.rtl .toast.ok{border-right-color:var(--green2)}
+body.rtl .toast.bad{border-right-color:var(--red2)}
+body.rtl .toast.inf{border-right-color:var(--amber2)}
+body.rtl .insp-note{border-left:none!important;border-right:2px solid var(--amber)!important}
+body.rtl .perm-step{flex-direction:row-reverse;text-align:right}
+body.rtl .chips-row{flex-direction:row-reverse}
+body.rtl .foot-btns{flex-direction:row-reverse}
+body.rtl .doc-item{flex-direction:row-reverse}
+body.rtl .doc-info{text-align:right}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,.35)}50%{box-shadow:0 0 0 10px rgba(245,166,35,0)}}
+@keyframes scan-y{0%{top:0}100%{top:100%}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+@keyframes fade-up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide-up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide-in{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes ripple-out{0%{transform:scale(0);opacity:.45}100%{transform:scale(5);opacity:0}}
+@keyframes upload-pulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.35)}50%{box-shadow:0 0 0 8px rgba(168,85,247,0)}}
+
+.scr{position:fixed;inset:0;display:none;flex-direction:column;background:var(--bg);z-index:1}
+.scr.on{display:flex}
+
+/* ENTRY */
+#s-entry{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 28px) 20px calc(var(--sb) + 36px);align-items:center}
+.entry-wrap{width:100%;max-width:400px;display:flex;flex-direction:column;animation:fade-up .45s cubic-bezier(.16,1,.3,1)}
+.brand-block{text-align:center;margin-bottom:28px}
+.brand-hex{width:60px;height:60px;margin:0 auto 14px;background:linear-gradient(135deg,var(--amber),var(--amber2));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center;font-size:24px;animation:pulse-ring 3s ease infinite}
+.brand-name{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.brand-name em{color:var(--amber);font-style:normal}
+.brand-tag{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:2px;margin-top:5px}
+.entry-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 20px 20px;margin-bottom:10px}
+.e-label{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:8px;display:block}
+.e-input{width:100%;background:var(--card2);border:1.5px solid var(--line2);color:var(--text);padding:14px;border-radius:11px;font-family:var(--mono);font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:14px}
+.e-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(245,166,35,.12)}
+.e-input::placeholder{color:var(--text3)}
+.btn-cta{display:block;width:100%;background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;font-weight:800;font-size:15px;padding:16px;border-radius:12px;transition:transform .1s,opacity .1s;touch-action:manipulation;position:relative;overflow:hidden}
+.btn-cta:active{transform:scale(.97);opacity:.9}
+.btn-outline{display:block;width:100%;border:1.5px solid var(--line2);color:var(--text2);font-weight:600;font-size:14px;padding:15px;border-radius:12px;margin-top:10px;transition:border-color .15s,color .15s;touch-action:manipulation;position:relative;overflow:hidden}
+.btn-outline:active{border-color:var(--amber);color:var(--amber)}
+.entry-note{background:var(--card2);border-radius:10px;padding:11px 14px;font-family:var(--mono);font-size:9px;color:var(--text3);line-height:1.9;margin-top:12px}
+.entry-note span{color:var(--text2)}
+
+/* APP */
+#s-app{overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 10px) calc(var(--sr) + 14px) 10px calc(var(--sl) + 14px);background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0;z-index:20}
+.topbar-logo{display:flex;align-items:center;gap:9px}
+.tb-hex{width:28px;height:28px;background:linear-gradient(135deg,var(--amber),var(--amber2));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center;font-size:12px;flex-shrink:0}
+.tb-name{font-size:17px;font-weight:800;letter-spacing:-.4px}
+.tb-name em{color:var(--amber);font-style:normal}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.mode-pill{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;touch-action:manipulation}
+.lang-btn{width:44px;height:34px;background:var(--card2);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:var(--mono);cursor:pointer;touch-action:manipulation;transition:all .15s;color:var(--text2)}
+.lang-btn:active,.lang-btn.ar-active{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,.08)}
+.icon-btn{width:34px;height:34px;background:var(--card2);border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;font-size:15px;cursor:pointer;touch-action:manipulation;transition:border-color .15s}
+.icon-btn:active{border-color:var(--amber)}
+/* Doc count badge on topbar */
+.doc-badge-pill{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);color:#d8b4fe;padding:4px 9px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;cursor:pointer;touch-action:manipulation;display:none;letter-spacing:.5px}
+.doc-badge-pill.on{display:block}
+
+.pages{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.page{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.page.on{display:block}
+#pg-capture.on{display:flex;flex-direction:column;overflow:hidden}
+
+.nav{display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:calc(var(--sb) + 4px);flex-shrink:0;z-index:20}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px 5px;cursor:pointer;touch-action:manipulation;position:relative;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+.nav-tab:active{opacity:.6}
+.nav-ico{font-size:19px;transition:transform .2s}
+.nav-lbl{font-size:7.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;font-family:var(--mono);color:var(--text3);transition:color .2s}
+body.rtl .nav-lbl{font-size:8.5px;letter-spacing:0;font-family:'Cairo',sans-serif;font-weight:700}
+.nav-tab.on .nav-lbl{color:var(--amber)}
+.nav-tab.on .nav-ico{transform:translateY(-2px)}
+.nav-badge{position:absolute;top:7px;right:calc(50% - 16px);background:var(--red);color:#fff;font-family:var(--mono);font-size:8px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--card)}
+.nav-badge.on{display:flex}
+
+/* CAPTURE */
+.area-bar{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--card);border-bottom:1px solid var(--line);flex-shrink:0}
+.area-lbl{font-size:8px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);white-space:nowrap}
+body.rtl .area-lbl{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:10px}
+.area-sel-wrap{flex:1;position:relative}
+.area-sel{width:100%;background:var(--card2);border:1.5px solid var(--line2);color:var(--text);padding:9px 30px 9px 12px;border-radius:10px;font-family:inherit;font-size:13px;font-weight:600;outline:none}
+.area-arr{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:10px}
+/* docs active indicator on area bar */
+.docs-indicator{display:none;align-items:center;gap:5px;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:5px 10px;white-space:nowrap;flex-shrink:0}
+.docs-indicator.on{display:flex}
+.docs-indicator-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:blink 2s infinite}
+.docs-indicator-lbl{font-family:var(--mono);font-size:8px;font-weight:700;color:#d8b4fe;letter-spacing:.5px}
+body.rtl .docs-indicator-lbl{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:9px}
+
+.cam-vp{flex:1;position:relative;background:#000;overflow:hidden;min-height:0}
+#vid{width:100%;height:100%;object-fit:cover;display:none;transform-origin:center center;transition:transform .2s}
+#demoCanvas{width:100%;height:100%;display:none}
+#prevImg{width:100%;height:100%;object-fit:cover;display:none}
+#fileInput{display:none}
+#pdfDocInput{display:none}
+.cam-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}
+.cam-ph-ring{width:80px;height:80px;border-radius:50%;border:2px dashed var(--line2);display:grid;place-items:center;font-size:34px;color:var(--text3)}
+.cam-ph-title{font-size:15px;font-weight:700;color:var(--text2)}
+.cam-ph-sub{font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.7}
+body.rtl .cam-ph-sub{font-family:'Cairo',sans-serif}
+.corners{position:absolute;inset:0;pointer-events:none}
+.c{position:absolute;width:26px;height:26px;border-color:var(--amber);border-style:solid;opacity:0;transition:opacity .35s}
+.c.tl{top:10px;left:10px;border-width:2px 0 0 2px;border-radius:4px 0 0 0}
+.c.tr{top:10px;right:10px;border-width:2px 2px 0 0;border-radius:0 4px 0 0}
+.c.bl{bottom:10px;left:10px;border-width:0 0 2px 2px;border-radius:0 0 0 4px}
+.c.br{bottom:10px;right:10px;border-width:0 2px 2px 0;border-radius:0 0 4px 0}
+.c.on{opacity:1}
+.scan-ln{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(245,166,35,.8) 30%,#fff 50%,rgba(245,166,35,.8) 70%,transparent 100%);box-shadow:0 0 8px rgba(245,166,35,.5);display:none;animation:scan-y 2.4s ease-in-out infinite alternate}
+.scan-ln.on{display:block}
+.cam-grid{position:absolute;inset:0;opacity:.07;pointer-events:none;display:none}
+.cam-grid.on{display:block}
+.cam-hud-tl{position:absolute;top:12px;left:12px;display:none;align-items:center;gap:6px;background:rgba(10,12,15,.8);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:5px 12px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px}
+.cam-hud-tl.on{display:flex}
+.hud-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.hud-dot.live{background:var(--green2);animation:blink 1.4s infinite}
+.hud-dot.demo{background:var(--amber);animation:blink 2s infinite}
+.hud-dot.still{background:var(--text3)}
+.cam-hud-tr{position:absolute;top:12px;right:12px;background:rgba(10,12,15,.8);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 8px;font-family:var(--mono);font-size:8px;color:var(--text3);display:none}
+.cam-hud-tr.on{display:block}
+/* Docs HUD badge inside camera viewport */
+.cam-docs-hud{position:absolute;bottom:12px;right:12px;background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.5);border-radius:10px;padding:5px 10px;font-family:var(--mono);font-size:9px;font-weight:700;color:#d8b4fe;letter-spacing:.5px;display:none;align-items:center;gap:5px}
+.cam-docs-hud.on{display:flex}
+body.rtl .cam-docs-hud{flex-direction:row-reverse;right:auto;left:12px;font-family:'Cairo',sans-serif;letter-spacing:0;font-size:10px}
+
+.side-ctrl{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:8px}
+.side-ctrl.on{display:flex}
+.sc-btn{width:46px;height:46px;background:rgba(10,12,15,.75);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:14px;display:grid;place-items:center;font-size:18px;touch-action:manipulation;transition:background .15s,border-color .15s}
+.sc-btn:active{background:rgba(245,166,35,.2);border-color:var(--amber)}
+.sc-btn.lit{background:rgba(245,166,35,.18);border-color:var(--amber)}
+.demo-badge{position:absolute;bottom:12px;left:12px;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.4);color:var(--amber);padding:4px 10px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1.5px;display:none}
+.demo-badge.on{display:block}
+.analyzing{position:absolute;inset:0;background:rgba(10,12,15,.9);backdrop-filter:blur(4px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.analyzing.on{display:flex}
+.ai-spinner{width:62px;height:62px;border:2px solid var(--line2);border-top-color:var(--amber);border-right-color:var(--amber2);border-radius:50%;animation:spin .75s linear infinite}
+.ai-label{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);letter-spacing:2.5px}
+.ai-step{font-family:var(--mono);font-size:10px;color:var(--text3)}
+body.rtl .ai-step{font-family:'Cairo',sans-serif;font-size:12px}
+.ai-bar{width:140px;height:2px;background:var(--line2);border-radius:2px;overflow:hidden}
+.ai-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber2));transition:width .7s ease}
+/* Docs context notice inside analyzing overlay */
+.ai-docs-note{font-family:var(--mono);font-size:9px;color:#d8b4fe;letter-spacing:.5px;display:none;align-items:center;gap:6px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);padding:6px 12px;border-radius:8px}
+.ai-docs-note.on{display:flex}
+body.rtl .ai-docs-note{font-family:'Cairo',sans-serif;font-size:10px;letter-spacing:0;flex-direction:row-reverse}
+
+.zoom-strip{display:none;flex-shrink:0;align-items:center;gap:12px;padding:8px 16px 6px;background:var(--card);border-top:1px solid var(--line)}
+.zoom-strip.on{display:flex}
+.z-lbl{font-family:var(--mono);font-size:8px;font-weight:700;color:var(--text3);letter-spacing:1px}
+.z-val{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--amber);min-width:36px;text-align:right}
+.err-strip{display:none;background:rgba(232,57,74,.1);border:1px solid rgba(232,57,74,.3);border-radius:10px;margin:10px 14px 0;padding:10px 12px;font-family:var(--mono);font-size:10px;color:var(--red2);line-height:1.7}
+.err-strip.on{display:block}
+body.rtl .err-strip{font-family:'Cairo',sans-serif;font-size:12px;text-align:right}
+.act-strip{background:var(--card);border-top:1px solid var(--line);padding:12px 14px 6px;flex-shrink:0}
+.btn-row{display:flex;gap:10px;align-items:center}
+.btn-row+.btn-row{margin-top:8px}
+.btn-green{flex:1;background:var(--green);color:#000;font-weight:800;font-size:14px;padding:15px 10px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .1s;touch-action:manipulation;position:relative;overflow:hidden}
+.btn-green:active{opacity:.8}
+.btn-amber{flex:1;background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;font-weight:800;font-size:14px;padding:15px 10px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .1s;touch-action:manipulation;position:relative;overflow:hidden}
+.btn-amber:active{opacity:.8}
+.btn-demo{background:rgba(245,166,35,.1);border:1.5px solid rgba(245,166,35,.3);color:var(--amber);font-weight:700;font-size:13px;padding:15px 14px;border-radius:13px;touch-action:manipulation;white-space:nowrap;transition:background .15s}
+.btn-demo:active{background:rgba(245,166,35,.2)}
+.btn-upload{background:rgba(59,130,246,.1);border:1.5px solid rgba(59,130,246,.3);color:#93c5fd;font-weight:700;font-size:13px;padding:15px 14px;border-radius:13px;touch-action:manipulation;white-space:nowrap;transition:background .15s}
+.btn-upload:active{background:rgba(59,130,246,.2)}
+.btn-sq{width:50px;height:50px;flex-shrink:0;background:var(--card2);border:1.5px solid var(--line2);border-radius:13px;display:grid;place-items:center;font-size:20px;touch-action:manipulation;transition:border-color .15s}
+.btn-sq:active{border-color:var(--amber)}
+.btn-retake{flex:1;background:var(--card2);border:1.5px solid var(--line2);color:var(--text2);font-weight:700;font-size:14px;padding:15px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:7px;touch-action:manipulation;transition:border-color .15s}
+.btn-retake:active{border-color:var(--amber)}
+
+/* FINDINGS */
+.pg-inner{padding:14px}
+.risk-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;display:none;animation:fade-up .4s ease}
+.risk-card.on{display:block}
+.risk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.risk-tag{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:var(--mono)}
+body.rtl .risk-tag{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:11px}
+.risk-num{font-size:36px;font-weight:800;font-family:var(--mono);line-height:1}
+.risk-trk{height:6px;background:var(--card3);border-radius:3px;overflow:hidden;margin-bottom:8px}
+.risk-fill{height:100%;border-radius:3px;transition:width 1.4s cubic-bezier(.16,1,.3,1)}
+.risk-lbl{font-family:var(--mono);font-size:9px;color:var(--text3)}
+body.rtl .risk-lbl{font-family:'Cairo',sans-serif;font-size:11px;text-align:right}
+.chips-row{display:flex;gap:7px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{padding:5px 13px;border-radius:20px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;touch-action:manipulation;white-space:nowrap;transition:all .15s;border:1.5px solid var(--line2);color:var(--text3);background:var(--card2)}
+body.rtl .chip{font-family:'Cairo',sans-serif;font-size:10px;letter-spacing:0}
+.chip.on{background:rgba(245,166,35,.15);border-color:var(--amber);color:var(--amber)}
+.chip.c-red.on{background:rgba(232,57,74,.15);border-color:var(--red);color:var(--red2)}
+.chip.c-green.on{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green2)}
+.def-card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;animation:slide-in .3s ease;transition:border-color .3s,opacity .3s}
+.def-card.done{opacity:.45;border-color:rgba(34,197,94,.25)}
+.def-head{padding:13px 14px 12px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:10px}
+.def-area{font-size:9px;color:var(--text3);font-family:var(--mono);margin-bottom:3px}
+body.rtl .def-area{font-family:'Cairo',sans-serif;font-size:10px;text-align:right}
+.def-name{font-size:14px;font-weight:700;line-height:1.3}
+.def-name.done{text-decoration:line-through;color:var(--text3)}
+.sev{padding:4px 9px;border-radius:7px;font-family:var(--mono);font-size:9px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.sev-C{background:#200810;border:1px solid #e8394a;color:#ff5566}
+.sev-H{background:#201000;border:1px solid #f5a623;color:#ffbe4d}
+.sev-M{background:#1e1800;border:1px solid #c89000;color:#f5c842}
+.sev-L{background:#051a0e;border:1px solid #22c55e;color:#4ade80}
+.def-body{padding:14px;display:flex;flex-direction:column;gap:12px}
+.f-lbl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:5px}
+body.rtl .f-lbl{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:10px;text-align:right}
+.f-val{font-size:12px;line-height:1.75;color:var(--text2)}
+body.rtl .f-val{font-size:13px;text-align:right}
+.reg-pill{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--amber);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.2);padding:3px 9px;border-radius:6px}
+.act-list{display:flex;flex-direction:column;gap:8px}
+.act-item{display:flex;gap:9px;font-size:12px;line-height:1.65}
+.act-num{min-width:22px;height:22px;background:var(--card3);border:1px solid var(--line2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;font-weight:700;color:var(--amber);flex-shrink:0;margin-top:1px}
+.act-txt{color:var(--text2)}
+body.rtl .act-txt{text-align:right;font-size:13px}
+.meta-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.assign-pill{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line2);border-radius:20px;padding:5px 12px;font-size:11px}
+body.rtl .assign-pill{flex-direction:row-reverse;font-size:12px}
+.tf-lbl{font-family:var(--mono);font-size:10px;font-weight:700}
+body.rtl .tf-lbl{font-family:'Cairo',sans-serif;font-size:11px}
+.def-foot{padding:10px 14px;border-top:1px solid var(--line);background:rgba(0,0,0,.15);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ts-txt{font-family:var(--mono);font-size:9px;color:var(--text3)}
+.foot-btns{display:flex;gap:7px}
+.f-btn{padding:6px 12px;border-radius:8px;font-family:var(--mono);font-size:10px;font-weight:700;border:1.5px solid var(--line2);color:var(--text3);touch-action:manipulation;transition:all .15s}
+body.rtl .f-btn{font-family:'Cairo',sans-serif;font-size:11px}
+.f-btn:active{border-color:var(--amber);color:var(--amber)}
+.res-btn.done{border-color:var(--green);color:var(--green2);background:rgba(34,197,94,.08)}
+.shr-btn:active{border-color:var(--blue);color:#93c5fd}
+.pass-card{background:rgba(34,197,94,.05);border:1.5px solid rgba(34,197,94,.2);border-radius:var(--radius);padding:14px;margin-bottom:12px;animation:slide-in .3s ease}
+.pass-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pass-name{font-weight:700;font-size:14px;color:var(--green2)}
+.pass-items{display:flex;flex-direction:column;gap:5px}
+.pass-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#86efac}
+body.rtl .pass-item{flex-direction:row-reverse;font-size:13px;text-align:right}
+.pass-ck{color:var(--green2);font-size:13px}
+.empty-pg{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;gap:14px;text-align:center}
+.empty-ico{font-size:56px;opacity:.08}
+.empty-ttl{font-size:15px;font-weight:700;color:var(--text2)}
+.empty-sub{font-size:11px;color:var(--text3);font-family:var(--mono);line-height:1.7}
+body.rtl .empty-sub{font-family:'Cairo',sans-serif;font-size:12px}
+.empty-btn{margin-top:8px;background:rgba(245,166,35,.1);border:1.5px solid rgba(245,166,35,.3);color:var(--amber);padding:12px 22px;border-radius:12px;font-weight:700;font-size:13px;touch-action:manipulation;transition:background .15s}
+.empty-btn:active{background:rgba(245,166,35,.2)}
+
+/* DASHBOARD */
+.sect-ttl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:10px}
+body.rtl .sect-ttl{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:11px;text-align:right}
+.metrics-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.met-tile{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:13px 12px}
+.met-num{font-size:28px;font-weight:800;font-family:var(--mono);line-height:1.1}
+.met-lbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-top:5px}
+body.rtl .met-lbl{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:9px}
+.metrics-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.met-wide{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:13px 14px;display:flex;align-items:center;gap:12px}
+.mw-ico{font-size:22px}
+.mw-num{font-size:22px;font-weight:800;font-family:var(--mono)}
+.mw-lbl{font-size:8px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+body.rtl .mw-lbl{font-family:'Cairo',sans-serif;font-size:9px}
+.sev-row{display:flex;gap:8px;margin-bottom:14px}
+.sev-tile{flex:1;background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);padding:12px 8px;text-align:center}
+.sev-tile-n{font-size:20px;font-weight:800;font-family:var(--mono)}
+.sev-tile-l{font-size:7px;font-family:var(--mono);font-weight:700;letter-spacing:1px;margin-top:4px}
+body.rtl .sev-tile-l{font-family:'Cairo',sans-serif;letter-spacing:0;font-size:8px}
+.area-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.ar-item{display:flex;align-items:center;gap:10px}
+.ar-name{font-size:10px;font-family:var(--mono);color:var(--text3);min-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.rtl .ar-name{font-family:'Cairo',sans-serif;font-size:11px;text-align:right;min-width:110px}
+.ar-trk{flex:1;height:4px;background:var(--card3);border-radius:2px;overflow:hidden}
+.ar-fill{height:100%;background:var(--amber);border-radius:2px;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.ar-cnt{font-family:var(--mono);font-size:10px;color:var(--amber);min-width:16px;text-align:right}
+.act-btn{display:flex;width:100%;align-items:center;justify-content:center;gap:9px;background:var(--card2);border:1.5px solid var(--line2);color:var(--text);padding:14px;border-radius:13px;font-weight:700;font-size:13px;margin-bottom:8px;touch-action:manipulation;transition:border-color .15s}
+.act-btn:active{border-color:var(--amber);color:var(--amber)}
+.act-btn.pdf-btn:active{border-color:var(--red2);color:var(--red2)}
+.act-btn.word-btn:active{border-color:#60a5fa;color:#60a5fa}
+.act-btn.xlsx-btn:active{border-color:var(--green2);color:var(--green2)}
+.clr-btn{display:block;width:100%;border:1.5px solid var(--line);color:var(--text3);padding:13px;border-radius:13px;font-weight:700;font-size:13px;touch-action:manipulation;transition:border-color .15s,color .15s}
+.clr-btn:active{border-color:var(--red);color:var(--red2)}
+
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:10px;cursor:pointer;touch-action:manipulation;animation:slide-in .3s ease;transition:border-color .15s}
+.hist-item:active{border-color:var(--amber)}
+.hist-thumb{width:50px;height:50px;border-radius:9px;overflow:hidden;flex-shrink:0;background:var(--card3)}
+.hist-thumb img{width:100%;height:100%;object-fit:cover}
+.hist-ph{width:100%;height:100%;display:grid;place-items:center;font-size:22px}
+.hist-info{flex:1;min-width:0}
+.hist-area{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.hist-meta{font-family:var(--mono);font-size:9px;color:var(--text3)}
+body.rtl .hist-meta{font-family:'Cairo',sans-serif;font-size:10px;text-align:right}
+.hist-risk{text-align:right;flex-shrink:0}
+.hist-rl{font-family:var(--mono);font-size:10px;font-weight:700}
+.hist-rs{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px}
+
+/* SETTINGS */
+.sett-sect{margin-bottom:22px}
+.sett-card{background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.sett-row{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid var(--line)}
+.sett-row:last-child{border-bottom:none}
+.sr-ttl{font-size:14px;font-weight:600;margin-bottom:2px}
+.sr-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+body.rtl .sr-sub{font-family:'Cairo',sans-serif;font-size:11px;text-align:right}
+.sr-val{font-family:var(--mono);font-size:11px;color:var(--amber);cursor:pointer;touch-action:manipulation}
+.pill-val{background:var(--card3);border-radius:7px;padding:3px 9px;font-family:var(--mono);font-size:10px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tog{width:46px;height:26px;background:var(--card3);border-radius:13px;position:relative;cursor:pointer;touch-action:manipulation;transition:background .2s;flex-shrink:0}
+.tog::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 5px rgba(0,0,0,.4)}
+.tog.on{background:var(--amber)}
+.tog.on::after{left:23px}
+.sett-btn{padding:7px 14px;border-radius:8px;font-family:var(--mono);font-size:10px;font-weight:700;border:1.5px solid var(--line2);color:var(--text2);touch-action:manipulation;transition:all .15s}
+.sett-btn:active{border-color:var(--amber);color:var(--amber)}
+
+/* ── COMPLIANCE DOC ITEMS ── */
+.doc-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid rgba(168,85,247,.25);border-radius:12px;padding:11px 14px;animation:slide-in .3s ease}
+.doc-icon{font-size:22px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.doc-meta{font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px}
+body.rtl .doc-meta{font-family:'Cairo',sans-serif;font-size:10px;text-align:right}
+.doc-del{padding:5px 11px;border-radius:8px;font-family:var(--mono);font-size:10px;font-weight:700;border:1.5px solid rgba(232,57,74,.3);color:var(--red2);touch-action:manipulation;flex-shrink:0;transition:all .15s;background:rgba(232,57,74,.05)}
+.doc-del:active{background:rgba(232,57,74,.15)}
+.upload-area{background:rgba(168,85,247,.05);border:2px dashed rgba(168,85,247,.3);border-radius:12px;padding:20px;text-align:center;cursor:pointer;touch-action:manipulation;transition:all .15s;animation:upload-pulse 3s ease infinite}
+.upload-area:active{background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.6)}
+.upload-area-ico{font-size:32px;margin-bottom:8px}
+.upload-area-ttl{font-size:13px;font-weight:700;color:#d8b4fe;margin-bottom:4px}
+.upload-area-sub{font-size:10px;color:var(--text3);font-family:var(--mono)}
+body.rtl .upload-area-sub{font-family:'Cairo',sans-serif;font-size:11px}
+.uploading-pill{display:none;align-items:center;gap:8px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:10px 14px}
+.uploading-pill.on{display:flex}
+.uploading-spin{width:18px;height:18px;border:2px solid rgba(168,85,247,.3);border-top-color:var(--purple);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
+.uploading-txt{font-family:var(--mono);font-size:10px;color:#d8b4fe}
+body.rtl .uploading-txt{font-family:'Cairo',sans-serif;font-size:11px}
+
+/* PERMISSION DIALOG */
+.perm-overlay{position:fixed;inset:0;z-index:100;background:rgba(10,12,15,.95);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:calc(var(--sb) + 24px)}
+.perm-overlay.on{display:flex}
+.perm-sheet{width:100%;max-width:440px;padding:0 16px;animation:slide-up .4s cubic-bezier(.16,1,.3,1)}
+.perm-card{background:var(--card2);border:1.5px solid var(--line2);border-radius:20px;padding:24px 22px;text-align:center}
+.perm-icon{font-size:48px;margin-bottom:16px}
+.perm-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.perm-body{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:20px}
+.perm-steps{background:var(--card3);border-radius:12px;padding:14px;margin-bottom:20px;text-align:left}
+.perm-step{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;color:var(--text2);margin-bottom:9px}
+.perm-step:last-child{margin-bottom:0}
+.perm-step-n{min-width:22px;height:22px;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;font-family:var(--mono);color:var(--amber);flex-shrink:0}
+.perm-btn-try{display:block;width:100%;background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;font-weight:800;font-size:15px;padding:16px;border-radius:13px;margin-bottom:10px;touch-action:manipulation}
+.perm-btn-try:active{opacity:.9}
+.perm-btn-skip{display:block;width:100%;border:1.5px solid var(--line2);color:var(--text3);padding:14px;border-radius:13px;font-weight:600;font-size:14px;touch-action:manipulation}
+.perm-btn-skip:active{border-color:var(--line)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav) + var(--sb) + 10px);left:14px;right:14px;max-width:440px;margin:0 auto;background:var(--card2);border-radius:13px;padding:12px 16px;font-family:var(--mono);font-size:11px;z-index:500;display:flex;align-items:center;gap:10px;border-left:3px solid var(--amber);transform:translateY(20px);opacity:0;transition:all .3s cubic-bezier(.16,1,.3,1);pointer-events:none}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.ok{border-left-color:var(--green2);color:var(--green2)}
+.toast.bad{border-left-color:var(--red2);color:var(--red2)}
+.toast.inf{border-left-color:var(--amber2);color:var(--amber2)}
+.toast.doc{border-left-color:var(--purple);color:#d8b4fe}
+body.rtl .toast{font-family:'Cairo',sans-serif;font-size:12px;border-left:none;border-right:3px solid var(--amber)}
+body.rtl .toast.ok{border-right-color:var(--green2)}
+body.rtl .toast.bad{border-right-color:var(--red2)}
+body.rtl .toast.inf{border-right-color:var(--amber2)}
+body.rtl .toast.doc{border-right-color:var(--purple)}
+
+.rpl{position:relative;overflow:hidden}
+.rpl-el{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;transform:scale(0);animation:ripple-out .55s ease-out forwards}
+.tf-imm{color:var(--red2)}.tf-24h{color:var(--orange)}.tf-7d{color:var(--yellow)}.tf-30d{color:var(--green2)}
+</style>
+</head>
+<body>
+
+<!-- ENTRY -->
+<div class="scr on" id="s-entry">
+  <div class="entry-wrap">
+    <div class="brand-block">
+      <div class="brand-hex">👁</div>
+      <div class="brand-name">Quality<em>Eye</em></div>
+      <div class="brand-tag" data-i18n="brandTag">AI COMPLIANCE INSPECTOR</div>
+    </div>
+    <div class="entry-card">
+      <label class="e-label" for="keyIn" data-i18n="apiKeyLabel">Anthropic API Key</label>
+      <input class="e-input" id="keyIn" type="password" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <button class="btn-cta rpl" id="btnActivate" data-i18n="btnActivate">⚡ Activate AI Engine</button>
+      <button class="btn-outline rpl" id="btnDemo" data-i18n="btnDemo">🎭 Try Full Demo Mode</button>
+      <div class="entry-note" data-i18n="entryNote">🔒 Key lives in memory only — never stored or shared<br><span data-i18n="entryNoteSub">Get yours free at console.anthropic.com</span></div>
+    </div>
+    <div style="display:flex;justify-content:center;margin-top:16px">
+      <button class="lang-btn rpl" id="entryLangBtn" onclick="toggleLang()">🌐 AR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="scr" id="s-app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="tb-hex">👁</div>
+      <div class="tb-name">Quality<em>Eye</em></div>
+    </div>
+    <div class="topbar-right">
+      <!-- Docs badge shows how many reference docs are loaded -->
+      <div class="doc-badge-pill rpl" id="docBadgePill" onclick="goPage('settings')" title="Compliance docs active">📎 0</div>
+      <button class="lang-btn rpl" id="appLangBtn" onclick="toggleLang()">🌐 AR</button>
+      <div class="mode-pill rpl" id="modePill">DEMO</div>
+      <div class="icon-btn rpl" id="btnSettings">⚙</div>
+    </div>
+  </div>
+
+  <div class="pages">
+    <!-- CAPTURE -->
+    <div class="page on" id="pg-capture">
+      <div class="area-bar">
+        <div class="area-lbl" data-i18n="area">AREA</div>
+        <div class="area-sel-wrap">
+          <select class="area-sel" id="areaSel"></select>
+          <div class="area-arr">▾</div>
+        </div>
+        <!-- Active docs indicator -->
+        <div class="docs-indicator" id="docsIndicator">
+          <div class="docs-indicator-dot"></div>
+          <div class="docs-indicator-lbl" id="docsIndicatorLbl">0 DOCS</div>
+        </div>
+      </div>
+      <div class="cam-vp" id="camVP">
+        <video id="vid" autoplay playsinline muted></video>
+        <canvas id="demoCanvas"></canvas>
+        <img id="prevImg" alt="captured">
+        <input type="file" id="fileInput" accept="image/*">
+        <input type="file" id="pdfDocInput" accept=".pdf,application/pdf">
+        <div class="cam-ph" id="camPH">
+          <div class="cam-ph-ring">📷</div>
+          <div class="cam-ph-title" data-i18n="camPhTitle">Ready to Inspect</div>
+          <div class="cam-ph-sub" data-i18n="camPhSub">Start camera, upload a photo,<br>or run Demo Mode</div>
+        </div>
+        <div class="corners" id="corners">
+          <div class="c tl" id="cTL"></div><div class="c tr" id="cTR"></div>
+          <div class="c bl" id="cBL"></div><div class="c br" id="cBR"></div>
+          <div class="scan-ln" id="scanLn"></div>
+          <svg class="cam-grid" id="camGrid" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <line x1="33" y1="0" x2="33" y2="100" stroke="#f5a623" stroke-width="0.5"/>
+            <line x1="66" y1="0" x2="66" y2="100" stroke="#f5a623" stroke-width="0.5"/>
+            <line x1="0" y1="33" x2="100" y2="33" stroke="#f5a623" stroke-width="0.5"/>
+            <line x1="0" y1="66" x2="100" y2="66" stroke="#f5a623" stroke-width="0.5"/>
+          </svg>
+        </div>
+        <div class="cam-hud-tl" id="hudTL"><div class="hud-dot" id="hudDot"></div><span id="hudTxt">LIVE</span></div>
+        <div class="cam-hud-tr" id="hudTR"></div>
+        <!-- Docs active HUD badge inside viewport -->
+        <div class="cam-docs-hud" id="camDocsHud">📎 <span id="camDocsCount">0</span> <span data-i18n="docsActive">DOCS</span></div>
+        <div class="side-ctrl" id="sideCtrl">
+          <button class="sc-btn rpl" id="btnFlip">🔄</button>
+          <button class="sc-btn rpl" id="btnTorch">🔦</button>
+          <button class="sc-btn rpl" id="btnZoomP">🔍</button>
+          <button class="sc-btn rpl" id="btnZoomM">🔎</button>
+        </div>
+        <div class="demo-badge" id="demoBadge">🎭 DEMO</div>
+        <div class="analyzing" id="analyzing">
+          <div class="ai-spinner"></div>
+          <div class="ai-label" data-i18n="analyzing">ANALYZING</div>
+          <div class="ai-step" id="aiStep"></div>
+          <div class="ai-bar"><div class="ai-fill" id="aiFill" style="width:0%"></div></div>
+          <!-- Shown when compliance docs are being used -->
+          <div class="ai-docs-note" id="aiDocsNote">
+            📎 <span id="aiDocsNoteTxt">Cross-referencing compliance documents…</span>
+          </div>
+        </div>
+      </div>
+      <div class="err-strip" id="errStrip"></div>
+      <div class="zoom-strip" id="zoomStrip">
+        <div class="z-lbl" data-i18n="zoom">ZOOM</div>
+        <input type="range" id="zoomSlider" min="1" max="4" step="0.1" value="1">
+        <div class="z-val" id="zoomVal">1.0×</div>
+      </div>
+      <div class="act-strip">
+        <div id="rowStart">
+          <div class="btn-row">
+            <button class="btn-green rpl" id="btnCamStart" data-i18n="startCam">▶ Start Camera</button>
+            <button class="btn-upload rpl" id="btnUpload" data-i18n="upload">📁 Upload</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn-demo rpl" id="btnDemoStart" data-i18n="demoMode">🎭 Demo Mode</button>
+          </div>
+        </div>
+        <div id="rowCapture" style="display:none">
+          <div class="btn-row">
+            <button class="btn-amber rpl" id="btnCapture" data-i18n="captureBtn">⚡ Capture & Analyze</button>
+            <button class="btn-sq rpl" id="btnFlip2">🔄</button>
+            <button class="btn-sq rpl" id="btnCamStop">✕</button>
+          </div>
+        </div>
+        <div id="rowDemo" style="display:none">
+          <div class="btn-row">
+            <button class="btn-amber rpl" id="btnRunDemo" data-i18n="runAnalysis">⚡ Run Analysis</button>
+            <button class="btn-sq rpl" id="btnScene">🔀</button>
+            <button class="btn-sq rpl" id="btnDemoStop">✕</button>
+          </div>
+        </div>
+        <div id="rowRetake" style="display:none">
+          <div class="btn-row">
+            <button class="btn-retake rpl" id="btnRetake" data-i18n="newInspection">↺ New Inspection</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINDINGS -->
+    <div class="page" id="pg-findings">
+      <div class="pg-inner">
+        <div class="risk-card" id="riskCard">
+          <div class="risk-head">
+            <div class="risk-tag" data-i18n="sessionRisk">Session Risk Score</div>
+            <div class="risk-num" id="riskNum">—</div>
+          </div>
+          <div class="risk-trk"><div class="risk-fill" id="riskFill" style="width:0%"></div></div>
+          <div class="risk-lbl" id="riskLbl"></div>
+        </div>
+        <div class="chips-row" id="chipsRow" style="display:none">
+          <div class="chip on" data-f="all" data-i18n="all">All</div>
+          <div class="chip c-red" data-f="Critical" data-i18n="critical">Critical</div>
+          <div class="chip c-red" data-f="High" data-i18n="high">High</div>
+          <div class="chip" data-f="Medium" data-i18n="medium">Medium</div>
+          <div class="chip c-green" data-f="Low" data-i18n="low">Low</div>
+          <div class="chip c-green" data-f="resolved" data-i18n="resolved">Resolved</div>
+        </div>
+        <div id="findCont">
+          <div class="empty-pg">
+            <div class="empty-ico">🔍</div>
+            <div class="empty-ttl" data-i18n="noInspections">No inspections yet</div>
+            <div class="empty-sub" data-i18n="noInspSub">Capture, upload a photo,<br>or run Demo to start</div>
+            <button class="empty-btn rpl" id="btnGoCapture" data-i18n="goCapture">→ Go to Capture</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page" id="pg-dashboard">
+      <div class="pg-inner">
+        <div class="sect-ttl" data-i18n="overview">Overview</div>
+        <div class="metrics-3">
+          <div class="met-tile"><div class="met-num" id="dTotal">0</div><div class="met-lbl" data-i18n="scans">Scans</div></div>
+          <div class="met-tile"><div class="met-num" id="dIssues" style="color:var(--red2)">0</div><div class="met-lbl" data-i18n="issues">Issues</div></div>
+          <div class="met-tile"><div class="met-num" id="dFixed" style="color:var(--green2)">0</div><div class="met-lbl" data-i18n="fixed">Fixed</div></div>
+        </div>
+        <div class="metrics-2">
+          <div class="met-wide"><div class="mw-ico">🔴</div><div><div class="mw-num" id="dCrit" style="color:var(--red2)">0</div><div class="mw-lbl" data-i18n="critHigh">Critical/High</div></div></div>
+          <div class="met-wide"><div class="mw-ico">🟡</div><div><div class="mw-num" id="dMinor" style="color:var(--yellow)">0</div><div class="mw-lbl" data-i18n="medLow">Med/Low</div></div></div>
+        </div>
+        <div class="sect-ttl" data-i18n="severity">Severity</div>
+        <div class="sev-row">
+          <div class="sev-tile"><div class="sev-tile-n" id="dSC" style="color:#ff5566">0</div><div class="sev-tile-l" style="color:#ff5566" data-i18n="critical">CRITICAL</div></div>
+          <div class="sev-tile"><div class="sev-tile-n" id="dSH" style="color:#ffbe4d">0</div><div class="sev-tile-l" style="color:#ffbe4d" data-i18n="high">HIGH</div></div>
+          <div class="sev-tile"><div class="sev-tile-n" id="dSM" style="color:#f5c842">0</div><div class="sev-tile-l" style="color:#f5c842" data-i18n="medium">MEDIUM</div></div>
+          <div class="sev-tile"><div class="sev-tile-n" id="dSL" style="color:#4ade80">0</div><div class="sev-tile-l" style="color:#4ade80" data-i18n="low">LOW</div></div>
+        </div>
+        <div class="sect-ttl" data-i18n="byArea">Issues by Area</div>
+        <div class="area-rows" id="areaRows"><div style="color:var(--text3);font-family:var(--mono);font-size:11px;text-align:center;padding:20px 0" data-i18n="noData">No data yet</div></div>
+        <div class="sect-ttl" data-i18n="exports">Export Reports</div>
+        <button class="act-btn pdf-btn rpl" id="btnExportPdf">📄 <span data-i18n="exportPdf">Export PDF Report</span></button>
+        <button class="act-btn word-btn rpl" id="btnExportWord">📝 <span data-i18n="exportWord">Export Word Document</span></button>
+        <button class="act-btn xlsx-btn rpl" id="btnExportExcel">📊 <span data-i18n="exportExcel">Export Excel Spreadsheet</span></button>
+        <button class="clr-btn rpl" id="btnClearAll" style="margin-top:4px" data-i18n="clearAll">🗑 Clear All Data</button>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="page" id="pg-history">
+      <div class="pg-inner"><div id="histCont">
+        <div class="empty-pg">
+          <div class="empty-ico">📋</div>
+          <div class="empty-ttl" data-i18n="noHistory">No history yet</div>
+          <div class="empty-sub" data-i18n="noHistSub">Completed inspections appear here</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="pg-settings">
+      <div class="pg-inner">
+
+        <!-- CONNECTION -->
+        <div class="sett-sect">
+          <div class="sect-ttl" data-i18n="connection">Connection</div>
+          <div class="sett-card">
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="apiKey">API Key</div><div class="sr-sub" id="keyStatus">Not connected</div></div>
+              <div class="pill-val" id="keyDisp">—</div>
+            </div>
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="changeKey">Change Key</div><div class="sr-sub" data-i18n="changeKeySub">Update or clear</div></div>
+              <button class="sett-btn rpl" id="btnChangeKey" data-i18n="change">Change</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ COMPLIANCE DOCUMENTS ══ -->
+        <div class="sett-sect">
+          <div class="sect-ttl">📎 <span data-i18n="compDocsTitle">Compliance Reference Documents</span></div>
+          <!-- Upload tap area -->
+          <div class="upload-area rpl" id="uploadArea" onclick="document.getElementById('pdfDocInput').click()">
+            <div class="upload-area-ico">📄</div>
+            <div class="upload-area-ttl" data-i18n="uploadDocTitle">Upload PDF Reference</div>
+            <div class="upload-area-sub" data-i18n="uploadDocSub">HACCP manuals · ISO 22000 · SOPs · FDA codes<br>Uploaded once — referenced on every inspection</div>
+          </div>
+          <!-- Uploading spinner -->
+          <div class="uploading-pill" id="uploadingPill" style="margin-top:10px">
+            <div class="uploading-spin"></div>
+            <div class="uploading-txt" data-i18n="uploadingTxt">Uploading to Anthropic Files API…</div>
+          </div>
+          <!-- Doc list -->
+          <div id="docList" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
+          <!-- Empty state -->
+          <div id="docEmpty" style="margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);font-family:var(--mono);line-height:1.8" data-i18n="docEmptyNote">No documents uploaded yet.<br>Claude will reference them on every future inspection.</div>
+          </div>
+        </div>
+
+        <!-- LANGUAGE -->
+        <div class="sett-sect">
+          <div class="sect-ttl" data-i18n="language">Language / اللغة</div>
+          <div class="sett-card">
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="langTitle">Interface Language</div><div class="sr-sub" data-i18n="langSub">English / العربية</div></div>
+              <button class="sett-btn rpl" onclick="toggleLang()">AR ⇄ EN</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CAMERA -->
+        <div class="sett-sect">
+          <div class="sect-ttl" data-i18n="camera">Camera</div>
+          <div class="sett-card">
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="flash">Flash / Torch</div><div class="sr-sub" data-i18n="flashSub">Light during capture</div></div>
+              <button class="tog" id="togFlash"></button>
+            </div>
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="hires">High Resolution</div><div class="sr-sub" data-i18n="hiresSub">4K when available</div></div>
+              <button class="tog on" id="togHires"></button>
+            </div>
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="defCam">Default Camera</div><div class="sr-sub" data-i18n="defCamSub">Rear or front lens</div></div>
+              <div class="sr-val rpl" id="camFaceLabel" style="touch-action:manipulation">Rear ▸</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANALYSIS -->
+        <div class="sett-sect">
+          <div class="sect-ttl" data-i18n="analysis">Analysis</div>
+          <div class="sett-card">
+            <div class="sett-row"><div><div class="sr-ttl" data-i18n="aiModel">AI Model</div><div class="sr-sub">claude-haiku-4-5</div></div><div class="pill-val">Haiku</div></div>
+            <div class="sett-row"><div><div class="sr-ttl" data-i18n="session">Session</div><div class="sr-sub">Current ID</div></div><div class="pill-val" id="sessDisp"></div></div>
+            <div class="sett-row">
+              <div><div class="sr-ttl" data-i18n="autoRes">Auto-resolve Low</div><div class="sr-sub" data-i18n="autoResSub">Mark low severity done</div></div>
+              <button class="tog" id="togAutoRes"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABOUT -->
+        <div class="sett-sect">
+          <div class="sect-ttl" data-i18n="about">About</div>
+          <div class="sett-card">
+            <div class="sett-row"><div><div class="sr-ttl">QualityEye v5</div><div class="sr-sub" data-i18n="aboutSub">AI Compliance Inspector</div></div></div>
+            <div class="sett-row"><div><div class="sr-ttl" data-i18n="standards">Standards</div><div class="sr-sub">HACCP · ISO 22000 · COSHH · FDA Food Code</div></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-tab on rpl" id="nt-capture" data-pg="capture"><div class="nav-ico">📷</div><div class="nav-lbl" data-i18n="capture">Capture</div></div>
+    <div class="nav-tab rpl" id="nt-findings" data-pg="findings"><div class="nav-ico">🔍</div><div class="nav-lbl" data-i18n="findings">Findings</div><div class="nav-badge" id="navBadge"></div></div>
+    <div class="nav-tab rpl" id="nt-dashboard" data-pg="dashboard"><div class="nav-ico">📊</div><div class="nav-lbl" data-i18n="dashboard">Dashboard</div></div>
+    <div class="nav-tab rpl" id="nt-history" data-pg="history"><div class="nav-ico">📋</div><div class="nav-lbl" data-i18n="history">History</div></div>
+    <div class="nav-tab rpl" id="nt-settings" data-pg="settings"><div class="nav-ico">⚙️</div><div class="nav-lbl" data-i18n="settings">Settings</div></div>
+  </nav>
+</div>
+
+<!-- Permission Dialog -->
+<div class="perm-overlay" id="permOverlay">
+  <div class="perm-sheet"><div class="perm-card">
+    <div class="perm-icon">📷</div>
+    <div class="perm-title" data-i18n="permTitle">Camera Access Needed</div>
+    <div class="perm-body" data-i18n="permBody">QualityEye needs your camera to capture inspection images for AI analysis.</div>
+    <div class="perm-steps">
+      <div class="perm-step"><div class="perm-step-n">1</div><div data-i18n="permStep1">Tap "Allow" when your browser asks for camera permission</div></div>
+      <div class="perm-step"><div class="perm-step-n">2</div><div data-i18n="permStep2">If previously denied: open browser Settings → Site permissions → Camera</div></div>
+      <div class="perm-step"><div class="perm-step-n">3</div><div data-i18n="permStep3">Or use Upload Photo — no camera needed</div></div>
+    </div>
+    <button class="perm-btn-try rpl" id="permTryBtn" data-i18n="permTry">📷 Request Camera Access</button>
+    <button class="perm-btn-skip rpl" id="permSkipBtn" data-i18n="permSkip">Use Upload Instead</button>
+  </div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════
+   TRANSLATIONS
+═══════════════════════════════════════ */
+const T={
+  en:{
+    brandTag:'AI COMPLIANCE INSPECTOR',apiKeyLabel:'Anthropic API Key',
+    btnActivate:'⚡ Activate AI Engine',btnDemo:'🎭 Try Full Demo Mode',
+    entryNote:'🔒 Key lives in memory only — never stored or shared',
+    entryNoteSub:'Get yours free at console.anthropic.com',
+    area:'AREA',camPhTitle:'Ready to Inspect',
+    camPhSub:'Start camera, upload a photo,\nor run Demo Mode',
+    analyzing:'ANALYZING',zoom:'ZOOM',
+    startCam:'▶ Start Camera',upload:'📁 Upload',demoMode:'🎭 Demo Mode',
+    captureBtn:'⚡ Capture & Analyze',runAnalysis:'⚡ Run Analysis',
+    newInspection:'↺ New Inspection',sessionRisk:'Session Risk Score',
+    all:'All',critical:'Critical',high:'High',medium:'Medium',low:'Low',resolved:'Resolved',
+    noInspections:'No inspections yet',noInspSub:'Capture, upload a photo,\nor run Demo to start',
+    goCapture:'→ Go to Capture',overview:'Overview',scans:'Scans',issues:'Issues',fixed:'Fixed',
+    critHigh:'Critical/High',medLow:'Med/Low',severity:'Severity',byArea:'Issues by Area',
+    noData:'No data yet',exports:'Export Reports',
+    exportPdf:'Export PDF Report',exportWord:'Export Word Document',exportExcel:'Export Excel Spreadsheet',
+    clearAll:'🗑 Clear All Data',noHistory:'No history yet',noHistSub:'Completed inspections appear here',
+    connection:'Connection',apiKey:'API Key',changeKey:'Change Key',changeKeySub:'Update or clear',
+    change:'Change',language:'Language / اللغة',langTitle:'Interface Language',langSub:'English / العربية',
+    camera:'Camera',flash:'Flash / Torch',flashSub:'Light during capture',
+    hires:'High Resolution',hiresSub:'4K when available',defCam:'Default Camera',defCamSub:'Rear or front lens',
+    analysis:'Analysis',aiModel:'AI Model',session:'Session',autoRes:'Auto-resolve Low',autoResSub:'Mark low severity done',
+    about:'About',aboutSub:'AI Compliance Inspector',standards:'Standards',
+    permTitle:'Camera Access Needed',permBody:'QualityEye needs your camera to capture inspection images for AI analysis.',
+    permStep1:'Tap "Allow" when your browser asks for camera permission',
+    permStep2:'If previously denied: open browser Settings → Site permissions → Camera',
+    permStep3:'Or use Upload Photo — no camera needed',
+    permTry:'📷 Request Camera Access',permSkip:'Use Upload Instead',
+    capture:'Capture',findings:'Findings',dashboard:'Dashboard',history:'History',settings:'Settings',
+    observation:'Observation',regulation:'Regulation',correctiveActions:'Corrective Action Plan',
+    assignee:'Assignee',timeframe:'Timeframe',inspNote:'Inspector Note',passedChecks:'Passed',
+    resolve:'○ Resolve',done:'✓ Done',share:'⎘ Share',
+    riskHigh:'HIGH RISK — Immediate action required',riskMed:'MEDIUM RISK — Monitor and address',riskLow:'LOW RISK — Routine monitoring',
+    aiSteps:['Initializing…','Processing image…','Scanning for hazards…','Assessing severity…','Checking regulations…','Generating report…'],
+    areas:['Kitchen — Main','Kitchen — Cold Room','Kitchen — Prep Area','Storage — Dry Goods','Storage — Chemicals','Dining Area — Floor','Bathrooms — Staff','Bathrooms — Guest','Loading Bay','Mechanical Room','Laundry','External — Grounds'],
+    sevLabels:{Critical:'Critical',High:'High',Medium:'Medium',Low:'Low'},
+    tfLabels:{'immediate':'Immediate','within 24h':'Within 24h','within 7 days':'Within 7 days','within 30 days':'Within 30 days'},
+    riskLabels:{Low:'Low',Medium:'Medium',High:'High',Critical:'Critical'},
+    reportTitle:'QualityEye Inspection Report',sessionId:'Session ID',date:'Date',
+    area2:'Area',riskLevel:'Risk Level',riskScore:'Risk Score',defect:'Defect',
+    sevLabel:'Severity',desc:'Description',ref:'Regulatory Reference',actions:'Corrective Actions',
+    responsible:'Responsible',tf:'Timeframe',passed:'Passed Checks',note:'Inspector Note',
+    excelSheet:'Inspection Report',noExport:'No inspections to export',
+    docsActive:'DOCS',
+    compDocsTitle:'Compliance Reference Documents',
+    uploadDocTitle:'Upload PDF Reference',
+    uploadDocSub:'HACCP manuals · ISO 22000 · SOPs · FDA codes\nUploaded once — referenced on every inspection',
+    uploadingTxt:'Uploading to Anthropic Files API…',
+    docEmptyNote:'No documents uploaded yet.\nClaude will reference them on every future inspection.',
+    crossRef:'Cross-referencing compliance documents…',
+  },
+  ar:{
+    brandTag:'مفتش الامتثال بالذكاء الاصطناعي',apiKeyLabel:'مفتاح Anthropic API',
+    btnActivate:'⚡ تفعيل محرك الذكاء الاصطناعي',btnDemo:'🎭 تجربة النمط التجريبي',
+    entryNote:'🔒 المفتاح في الذاكرة فقط — لا يُحفظ أو يُشارك أبداً',
+    entryNoteSub:'احصل على مفتاحك مجاناً من console.anthropic.com',
+    area:'المنطقة',camPhTitle:'جاهز للتفتيش',
+    camPhSub:'ابدأ الكاميرا، أو ارفع صورة،\nأو شغّل النمط التجريبي',
+    analyzing:'جارٍ التحليل',zoom:'تكبير',
+    startCam:'▶ تشغيل الكاميرا',upload:'📁 رفع صورة',demoMode:'🎭 النمط التجريبي',
+    captureBtn:'⚡ التقاط وتحليل',runAnalysis:'⚡ تشغيل التحليل',
+    newInspection:'↺ فحص جديد',sessionRisk:'درجة المخاطرة الإجمالية',
+    all:'الكل',critical:'بالغة الخطورة',high:'عالية',medium:'متوسطة',low:'منخفضة',resolved:'تمّ الحلّ',
+    noInspections:'لا توجد فحوصات بعد',noInspSub:'التقط صورة أو ارفع ملفاً\nأو شغّل النمط التجريبي',
+    goCapture:'← الذهاب إلى الالتقاط',overview:'نظرة عامة',scans:'عمليات الفحص',issues:'المخالفات',fixed:'المُعالَجة',
+    critHigh:'بالغة/عالية',medLow:'متوسطة/منخفضة',severity:'مستوى الخطورة',byArea:'المخالفات حسب المنطقة',
+    noData:'لا توجد بيانات بعد',exports:'تصدير التقارير',
+    exportPdf:'تصدير تقرير PDF',exportWord:'تصدير مستند Word',exportExcel:'تصدير جدول Excel',
+    clearAll:'🗑 مسح جميع البيانات',noHistory:'لا يوجد سجل بعد',noHistSub:'تظهر هنا الفحوصات المكتملة',
+    connection:'الاتصال',apiKey:'مفتاح API',changeKey:'تغيير المفتاح',changeKeySub:'تحديث أو مسح',
+    change:'تغيير',language:'Language / اللغة',langTitle:'لغة الواجهة',langSub:'English / العربية',
+    camera:'الكاميرا',flash:'الفلاش / المصباح',flashSub:'إضاءة أثناء الالتقاط',
+    hires:'دقة عالية',hiresSub:'4K عند توفرها',defCam:'الكاميرا الافتراضية',defCamSub:'عدسة خلفية أو أمامية',
+    analysis:'التحليل',aiModel:'النموذج الذكي',session:'الجلسة',autoRes:'معالجة المنخفض تلقائياً',autoResSub:'تمييز المخاطر المنخفضة كمُعالَجة',
+    about:'حول التطبيق',aboutSub:'مفتش الامتثال بالذكاء الاصطناعي',standards:'المعايير',
+    permTitle:'مطلوب الوصول إلى الكاميرا',permBody:'يحتاج QualityEye إلى الكاميرا لالتقاط صور الفحص وتحليلها.',
+    permStep1:'اضغط "سماح" عندما يطلب المتصفح إذن الكاميرا',
+    permStep2:'في حال الرفض: افتح الإعدادات ← صلاحيات الموقع ← الكاميرا',
+    permStep3:'أو استخدم رفع الصورة — لا تحتاج إلى كاميرا',
+    permTry:'📷 طلب الوصول إلى الكاميرا',permSkip:'استخدام رفع الصورة بدلاً',
+    capture:'التقاط',findings:'النتائج',dashboard:'لوحة التحكم',history:'السجل',settings:'الإعدادات',
+    observation:'الملاحظة التفصيلية',regulation:'المرجع التنظيمي',correctiveActions:'خطة الإجراءات التصحيحية',
+    assignee:'المسؤول التنفيذي',timeframe:'الإطار الزمني',inspNote:'ملاحظات المفتش',passedChecks:'الفحوصات الناجحة',
+    resolve:'○ معالجة',done:'✓ تمّت',share:'⎘ مشاركة',
+    riskHigh:'مخاطرة عالية — يستلزم إجراءً فورياً',riskMed:'مخاطرة متوسطة — مراقبة ومعالجة',riskLow:'مخاطرة منخفضة — مراقبة دورية',
+    aiSteps:['تهيئة النظام…','معالجة الصورة…','رصد مواطن الخطر…','تقييم مستوى الخطورة…','مراجعة اللوائح التنظيمية…','إنشاء التقرير التفصيلي…'],
+    areas:['المطبخ الرئيسي','المطبخ — غرفة التبريد','المطبخ — منطقة التحضير','التخزين — المواد الجافة','التخزين — المواد الكيميائية','قاعة الطعام — الأرضية','دورات المياه — الموظفين','دورات المياه — الضيوف','منطقة التحميل','الغرفة الميكانيكية','غرفة الغسيل','الخارج — الساحة'],
+    sevLabels:{Critical:'بالغة الخطورة',High:'عالية الخطورة',Medium:'متوسطة الخطورة',Low:'منخفضة الخطورة'},
+    tfLabels:{'immediate':'فوري','within 24h':'خلال 24 ساعة','within 7 days':'خلال 7 أيام','within 30 days':'خلال 30 يوماً'},
+    riskLabels:{Low:'منخفض',Medium:'متوسط',High:'عالٍ',Critical:'بالغ الخطورة'},
+    reportTitle:'تقرير فحص الجودة والامتثال — QualityEye',sessionId:'رقم الجلسة',date:'تاريخ الفحص',
+    area2:'المنطقة',riskLevel:'مستوى المخاطرة',riskScore:'درجة المخاطرة',defect:'الخلل المكتشف',
+    sevLabel:'مستوى الخطورة',desc:'الوصف التفصيلي',ref:'المرجع التنظيمي',actions:'الإجراءات التصحيحية',
+    responsible:'المسؤول التنفيذي',tf:'الإطار الزمني',passed:'الفحوصات الناجحة',note:'ملاحظات المفتش',
+    excelSheet:'تقرير الفحص',noExport:'لا توجد فحوصات للتصدير',
+    docsActive:'وثيقة',
+    compDocsTitle:'وثائق الامتثال المرجعية',
+    uploadDocTitle:'رفع مرجع PDF',
+    uploadDocSub:'أدلة HACCP · معايير ISO 22000 · إجراءات التشغيل · FDA\nيُرفع مرة واحدة — يُستشار في كل فحص',
+    uploadingTxt:'جارٍ الرفع إلى Anthropic Files API…',
+    docEmptyNote:'لم يتم رفع وثائق بعد.\nسيستشيرها Claude في كل عملية فحص مستقبلية.',
+    crossRef:'جارٍ المراجعة بالوثائق المرجعية…',
+  }
+};
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let apiKey=null,isDemoMode=false,stream=null,facing='environment';
+let torchOn=false,zoomLvl=1,inspections=[],resolved={};
+let filter='all',sceneIdx=0,demoAnim=null,demoActive=false,clearStep=0;
+let lang='en';
+let complianceDocs=[]; // [{fileId, name, size, uploadedAt}]
+const SID='QI-'+String(Math.floor(Math.random()*9000)+1000);
+const FILES_BETA='files-api-2025-04-14';
+
+/* ═══════════════════════════════════════
+   TRANSLATIONS
+═══════════════════════════════════════ */
+function t(k){ return T[lang][k]??T.en[k]??k; }
+
+function toggleLang(){
+  lang=lang==='en'?'ar':'en';
+  applyLang();
+  toast(lang==='ar'?'تم التبديل إلى العربية ✓':'Switched to English ✓','ok');
+}
+
+function applyLang(){
+  const isAr=lang==='ar';
+  document.documentElement.lang=lang;
+  document.body.classList.toggle('rtl',isAr);
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.dataset.i18n; const v=T[lang][k];
+    if(v!==undefined) el.textContent=v;
+  });
+  const lbl=isAr?'🌐 EN':'🌐 AR';
+  document.querySelectorAll('#appLangBtn,#entryLangBtn').forEach(b=>{ b.textContent=lbl; b.classList.toggle('ar-active',isAr); });
+  populateAreas();
+  updateDocsUI();
+}
+
+function populateAreas(){
+  const sel=document.getElementById('areaSel');
+  sel.innerHTML=t('areas').map(a=>`<option>${a}</option>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   DEMO SCENES
+═══════════════════════════════════════ */
+const SCENES=[
+  { name_en:'Kitchen — Grease Buildup',name_ar:'المطبخ — تراكم الشحوم',emoji:'🍳',
+    draw:(c,w,h)=>{ c.fillStyle='#110900';c.fillRect(0,0,w,h);for(let i=0;i<14;i++){c.fillStyle=`rgba(${70+i*4},${30+i*2},0,${Math.random()*.45+.1})`;c.fillRect(Math.random()*w,Math.random()*h,Math.random()*90+15,Math.random()*55+8);}c.fillStyle='#1e1000';c.fillRect(0,h*.55,w,h); },
+    result_en:{overallRisk:'High',riskScore:72,passedChecks:['Good lighting','Staff PPE visible'],inspectorNote:'Two violations require attention within 24 hours.',
+      defects:[{defectName:'Grease Accumulation — Extraction Hood',severity:'High',description:'Heavy grease buildup on canopy filters and surrounding surfaces. Fire hazard confirmed. Carbon deposits indicate filters overdue by at least 4 weeks.',regulation:'HACCP Pre-req Programme / Fire Safety Order 2005 Art.17',correctiveActions:['Remove and deep-clean canopy filters immediately','Degrease surrounding surfaces with commercial degreaser','Schedule professional canopy clean within 48h','Move to weekly filter rotation'],assignee:'Kitchen Manager',timeframe:'within 24h'},
+        {defectName:'Food Debris Under Cooking Equipment',severity:'Medium',description:'Food residue and grease under ranges and fryers. Pest harborage risk.',regulation:'HACCP CCP-2 / Health Code §3.4.1',correctiveActions:['Pull equipment and deep-clean floor','Sanitize all undersurfaces','Add daily clean to schedule'],assignee:'Kitchen Staff',timeframe:'within 7 days'}]},
+    result_ar:{overallRisk:'High',riskScore:72,passedChecks:['إضاءة جيدة','معدات الحماية مرئية'],inspectorNote:'مخالفتان تستلزمان معالجةً فورية خلال 24 ساعة.',
+      defects:[{defectName:'تراكم الشحوم على غطاء الشفط',severity:'High',description:'تراكم كثيف للشحوم على فلاتر غطاء الشفط. خطر حريق محقق. الرواسب الكربونية تشير إلى تأخر صيانة لا يقل عن 4 أسابيع.',regulation:'برنامج المتطلبات المسبقة HACCP / أمر سلامة الحريق 2005',correctiveActions:['إزالة الفلاتر وتنظيفها عمقياً فوراً','إزالة الشحوم بمزيل صناعي','جدولة تنظيف احترافي خلال 48 ساعة','تبديل الفلاتر أسبوعياً'],assignee:'مدير المطبخ',timeframe:'within 24h'},
+        {defectName:'مخلفات طعام تحت معدات الطهي',severity:'Medium',description:'بقايا طعام وشحوم تحت الأفران. خطر استيطان الآفات.',regulation:'HACCP CCP-2 / قانون الصحة §3.4.1',correctiveActions:['سحب المعدات وتنظيف الأرضية','تعقيم الأسطح السفلية','إضافة تنظيف يومي للجدول'],assignee:'طاقم المطبخ',timeframe:'within 7 days'}]}
+  },
+  { name_en:'Cold Room — Temperature Alert',name_ar:'غرفة التبريد — تنبيه حراري',emoji:'❄️',
+    draw:(c,w,h)=>{ c.fillStyle='#030d17';c.fillRect(0,0,w,h);for(let i=0;i<9;i++){c.fillStyle=`rgba(60,120,200,${.04+i*.01})`;c.fillRect(0,i*(h/9),w,h/18);}c.fillStyle='#082030';c.fillRect(25,18,w-50,h-36); },
+    result_en:{overallRisk:'Critical',riskScore:91,passedChecks:['Product labeling correct','FIFO visible'],inspectorNote:'CRITICAL — shut down until temperature stabilised.',
+      defects:[{defectName:'Walk-in Cooler Seal Failure',severity:'Critical',description:'Door gasket torn — no airtight seal. Temp 8°C vs 0–4°C required. High-risk foods compromised.',regulation:'HACCP CCP-1 / FDA Food Code 3-501.16',correctiveActions:['Move all high-risk foods to backup cold storage NOW','Contact refrigeration engineer — same-day repair','Document deviation in log','Discard products >2h above safe temp'],assignee:'General Manager',timeframe:'immediate'},
+        {defectName:'Ice Formation on Evaporator Coils',severity:'High',description:'Excessive ice on evaporator coils. Defrost system failure suspected.',regulation:'ISO 22000:2018 §8.2',correctiveActions:['Manual defrost under engineer supervision','Test defrost thermostat','Replace heater element if faulty'],assignee:'Engineering',timeframe:'within 24h'}]},
+    result_ar:{overallRisk:'Critical',riskScore:91,passedChecks:['توسيم المنتجات صحيح','نظام FIFO مطبق'],inspectorNote:'بالغ الخطورة — أغلق المنطقة حتى استقرار الحرارة.',
+      defects:[{defectName:'فشل مانع التسرب في غرفة التبريد',severity:'Critical',description:'تمزق الحشية — لا إحكام في الإغلاق. درجة الحرارة 8°م بدلاً من 0–4°م المطلوبة.',regulation:'HACCP CCP-1 / كود الغذاء FDA 3-501.16',correctiveActions:['نقل الأغذية عالية الخطورة فوراً','الاتصال بمهندس التبريد لنفس اليوم','توثيق الانحراف في السجل','التخلص من المنتجات المعرضة لأكثر من ساعتين'],assignee:'المدير العام',timeframe:'immediate'},
+        {defectName:'تجمّد الجليد على ملفات المبخّر',severity:'High',description:'تراكم جليد مفرط. يُشتبه في عطل منظومة إذابة الجليد.',regulation:'ISO 22000:2018 القسم 8-2',correctiveActions:['إذابة يدوية تحت إشراف مهندس','اختبار المنظم والموقت','استبدال عنصر التسخين'],assignee:'الهندسة',timeframe:'within 24h'}]}
+  },
+  { name_en:'Dining Area — All Clear',name_ar:'قاعة الطعام — لا مخالفات',emoji:'🍽️',
+    draw:(c,w,h)=>{ c.fillStyle='#0e0c0a';c.fillRect(0,0,w,h);c.fillStyle='#191510';for(let i=0;i<7;i++)c.fillRect(i*(w/7),0,w/7-2,h);c.fillStyle='#141008';c.fillRect(0,h*.7,w,h*.3); },
+    result_en:{overallRisk:'Low',riskScore:11,passedChecks:['Tables clean','Floor clear','No pests','Fire exits clear','Handwashing stocked'],defects:[]},
+    result_ar:{overallRisk:'Low',riskScore:11,passedChecks:['الطاولات نظيفة','الأرضية نظيفة','لا آفات','مخارج الطوارئ واضحة','محطة الغسيل مجهزة'],defects:[]}
+  }
+];
+
+/* ═══════════════════════════════════════
+   BOOT
+═══════════════════════════════════════ */
+document.getElementById('sessDisp').textContent=SID;
+fixDVH();
+window.addEventListener('resize',fixDVH);
+populateAreas();
+autoActivate();
+loadSavedDocs();
+
+function fixDVH(){ document.documentElement.style.setProperty('--dvh',window.innerHeight*.01+'px'); }
+
+/* ═══════════════════════════════════════
+   RIPPLE
+═══════════════════════════════════════ */
+function ripple(e){
+  const el=e.currentTarget,r=el.getBoundingClientRect();
+  const cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+  const cy=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+  const sz=Math.max(r.width,r.height)*2.2;
+  const sp=document.createElement('span');
+  sp.className='rpl-el';
+  sp.style.cssText=`width:${sz}px;height:${sz}px;left:${cx-sz/2}px;top:${cy-sz/2}px`;
+  el.appendChild(sp);setTimeout(()=>sp.remove(),650);
+}
+document.querySelectorAll('.rpl').forEach(el=>el.addEventListener('touchstart',ripple,{passive:true}));
+
+/* ═══════════════════════════════════════
+   WIRE BUTTONS
+═══════════════════════════════════════ */
+function wire(id,fn){ const el=document.getElementById(id); if(el) el.addEventListener('click',fn); }
+wire('btnActivate',activateKey);
+wire('btnDemo',activateDemo);
+wire('btnCamStart',startCamera);
+wire('btnUpload',triggerUpload);
+wire('btnDemoStart',startDemoMode);
+wire('btnCapture',captureAndAnalyze);
+wire('btnFlip',flipCam);wire('btnFlip2',flipCam);
+wire('btnTorch',toggleTorch);
+wire('btnZoomP',()=>nudgeZoom(.5));
+wire('btnZoomM',()=>nudgeZoom(-.5));
+wire('btnCamStop',stopCamera);
+wire('btnRunDemo',runDemoAnalysis);
+wire('btnScene',nextScene);
+wire('btnDemoStop',stopDemoMode);
+wire('btnRetake',retake);
+wire('btnSettings',()=>goPage('settings'));
+wire('btnGoCapture',()=>goPage('capture'));
+wire('btnExportPdf',exportPdf);
+wire('btnExportWord',exportWord);
+wire('btnExportExcel',exportExcel);
+wire('btnClearAll',clearAll);
+wire('btnChangeKey',async()=>{
+  try{ await window.storage.delete('qe_api_key'); } catch(e){}
+  apiKey=null; stopCamera(); stopDemoMode();
+  document.getElementById('s-app').classList.remove('on');
+  document.getElementById('s-entry').classList.add('on');
+  document.getElementById('keyIn').value='';
+  toast(lang==='ar'?'تم مسح المفتاح المحفوظ':'Saved key cleared','inf');
+});
+wire('camFaceLabel',()=>{ facing=facing==='environment'?'user':'environment'; document.getElementById('camFaceLabel').textContent=facing==='environment'?'Rear ▸':'Front ▸'; });
+['togFlash','togHires','togAutoRes'].forEach(id=>wire(id,()=>document.getElementById(id).classList.toggle('on')));
+wire('permTryBtn',()=>{ hidePerm();startCamera(); });
+wire('permSkipBtn',()=>{ hidePerm();triggerUpload(); });
+document.querySelectorAll('.chip').forEach(chip=>chip.addEventListener('click',function(){
+  filter=this.dataset.f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  this.classList.add('on'); applyFilter();
+}));
+document.querySelectorAll('.nav-tab').forEach(tab=>tab.addEventListener('click',function(){ goPage(this.dataset.pg); }));
+document.getElementById('zoomSlider').addEventListener('input',function(){ applyZoom(+this.value); });
+document.getElementById('keyIn').addEventListener('keydown',e=>{ if(e.key==='Enter') activateKey(); });
+document.getElementById('fileInput').addEventListener('change',handleFileSelect);
+document.getElementById('pdfDocInput').addEventListener('change',handleDocSelect);
+
+/* ═══════════════════════════════════════
+   ENTRY / ACTIVATION
+═══════════════════════════════════════ */
+async function autoActivate(){
+  try{
+    const saved=await window.storage.get('qe_api_key');
+    if(saved&&saved.value&&saved.value.startsWith('sk-ant-')){
+      apiKey=saved.value; isDemoMode=false;
+      setPill('LIVE AI','var(--green2)');
+      updateSettingsKey(); showApp();
+      toast(lang==='ar'?'تم التفعيل التلقائي ✓':'Auto-activated ✓','ok');
+    }
+  } catch(e){}
+}
+
+async function activateKey(){
+  const k=document.getElementById('keyIn').value.trim();
+  if(!k.startsWith('sk-ant-')){ toast(lang==='ar'?'مفتاح غير صالح — يجب أن يبدأ بـ sk-ant-':'Invalid key — must start with sk-ant-','bad'); return; }
+  apiKey=k; isDemoMode=false;
+  try{ await window.storage.set('qe_api_key',k); } catch(e){}
+  setPill('LIVE AI','var(--green2)');
+  updateSettingsKey(); showApp();
+  toast(lang==='ar'?'تم الحفظ والتفعيل ✓':'Key saved & activated ✓','ok');
+}
+
+function activateDemo(){ isDemoMode=true; setPill('DEMO','var(--amber2)'); updateSettingsKey(); showApp(); toast(lang==='ar'?'النمط التجريبي مفعّل':'Demo Mode activated','inf'); }
+function showApp(){ document.getElementById('s-entry').classList.remove('on'); document.getElementById('s-app').classList.add('on'); fixDVH(); }
+function setPill(txt,color){ const p=document.getElementById('modePill'); p.textContent=txt; p.style.color=color; }
+function updateSettingsKey(){
+  if(isDemoMode){ document.getElementById('keyStatus').textContent='Demo Mode'; document.getElementById('keyDisp').textContent='DEMO'; }
+  else if(apiKey){ document.getElementById('keyStatus').textContent='Connected'; document.getElementById('keyDisp').textContent=apiKey.slice(0,12)+'…'; }
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('pg-'+name)?.classList.add('on');
+  document.getElementById('nt-'+name)?.classList.add('on');
+}
+
+/* ═══════════════════════════════════════
+   ██████ FILES API — COMPLIANCE DOCS ██████
+═══════════════════════════════════════ */
+async function loadSavedDocs(){
+  try{
+    const saved=await window.storage.get('qe_compliance_docs');
+    if(saved&&saved.value){
+      complianceDocs=JSON.parse(saved.value)||[];
+    }
+  } catch(e){ complianceDocs=[]; }
+  updateDocsUI();
+}
+
+async function saveDocsToStorage(){
+  try{ await window.storage.set('qe_compliance_docs',JSON.stringify(complianceDocs)); } catch(e){}
+}
+
+function handleDocSelect(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file) return;
+  if(!file.type.includes('pdf')&&!file.name.toLowerCase().endsWith('.pdf')){
+    toast(lang==='ar'?'يرجى اختيار ملف PDF فقط':'Please select a PDF file','bad'); return;
+  }
+  if(!apiKey||isDemoMode){
+    toast(lang==='ar'?'يلزم مفتاح API حقيقي لرفع الوثائق':'Real API key required to upload documents','bad'); return;
+  }
+  uploadDocFile(file);
+  e.target.value='';
+}
+
+async function uploadDocFile(file){
+  const pill=document.getElementById('uploadingPill');
+  pill.classList.add('on');
+  try{
+    const formData=new FormData();
+    formData.append('file',file,file.name);
+
+    const resp=await fetch('https://api.anthropic.com/v1/beta/files',{
+      method:'POST',
+      headers:{
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-beta':FILES_BETA,
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:formData
+    });
+
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||'HTTP '+resp.status);
+    }
+
+    const data=await resp.json();
+    const doc={
+      fileId:data.id,
+      name:file.name,
+      size:file.size,
+      uploadedAt:new Date().toLocaleString(lang==='ar'?'ar-SA':'en-GB')
+    };
+    complianceDocs.push(doc);
+    await saveDocsToStorage();
+    updateDocsUI();
+    toast(lang==='ar'?`✓ تم رفع "${file.name}" بنجاح`:`✓ "${file.name}" uploaded successfully`,'doc');
+  } catch(err){
+    toast((lang==='ar'?'فشل رفع الوثيقة: ':'Upload failed: ')+err.message,'bad');
+  } finally{
+    pill.classList.remove('on');
+  }
+}
+
+async function deleteDoc(fileId){
+  // Delete from Anthropic Files API
+  if(apiKey&&!isDemoMode){
+    try{
+      await fetch(`https://api.anthropic.com/v1/beta/files/${fileId}`,{
+        method:'DELETE',
+        headers:{
+          'x-api-key':apiKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-beta':FILES_BETA,
+          'anthropic-dangerous-direct-browser-access':'true'
+        }
+      });
+    } catch(e){}
+  }
+  complianceDocs=complianceDocs.filter(d=>d.fileId!==fileId);
+  await saveDocsToStorage();
+  updateDocsUI();
+  toast(lang==='ar'?'تم حذف الوثيقة':'Document deleted','inf');
+}
+
+function updateDocsUI(){
+  const cnt=complianceDocs.length;
+  // Topbar badge
+  const badge=document.getElementById('docBadgePill');
+  badge.textContent=`📎 ${cnt}`;
+  badge.classList.toggle('on',cnt>0);
+  // Area bar indicator
+  const ind=document.getElementById('docsIndicator');
+  const indLbl=document.getElementById('docsIndicatorLbl');
+  ind.classList.toggle('on',cnt>0);
+  if(cnt>0) indLbl.textContent=`${cnt} ${t('docsActive').toUpperCase()}`;
+  // Camera HUD
+  const hud=document.getElementById('camDocsHud');
+  const hudCnt=document.getElementById('camDocsCount');
+  hud.classList.toggle('on',cnt>0);
+  if(hudCnt) hudCnt.textContent=cnt;
+  // Doc list in settings
+  renderDocList();
+}
+
+function renderDocList(){
+  const list=document.getElementById('docList');
+  const empty=document.getElementById('docEmpty');
+  if(!list) return;
+  list.innerHTML='';
+  if(complianceDocs.length===0){
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  complianceDocs.forEach(doc=>{
+    const el=document.createElement('div');
+    el.className='doc-item';
+    const sizeMB=(doc.size/1024/1024).toFixed(2);
+    el.innerHTML=`
+      <div class="doc-icon">📄</div>
+      <div class="doc-info">
+        <div class="doc-name" title="${doc.name}">${doc.name}</div>
+        <div class="doc-meta">${sizeMB} MB · ${doc.uploadedAt}</div>
+        <div class="doc-meta" style="color:rgba(168,85,247,.7);margin-top:2px;font-size:8px">${doc.fileId}</div>
+      </div>
+      <button class="doc-del rpl" onclick="deleteDoc('${doc.fileId}')">${lang==='ar'?'حذف':'Delete'}</button>`;
+    list.appendChild(el);
+  });
+}
+
+/* ═══════════════════════════════════════
+   CAMERA
+═══════════════════════════════════════ */
+async function startCamera(){
+  hideErr();
+  if(!navigator.mediaDevices?.getUserMedia){ showPermDialog(); return; }
+  try{
+    const hires=document.getElementById('togHires').classList.contains('on');
+    stream=await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ideal:facing}, width:{ideal:hires?3840:1920}, height:{ideal:hires?2160:1080} } });
+    const vid=document.getElementById('vid'); vid.srcObject=stream; vid.style.display='block';
+    document.getElementById('camPH').style.display='none';
+    setCamOverlay(true); setHUD('live','LIVE'); showHUD(true); updateResLabel(); setState('capture');
+  } catch(err){
+    if(err.name==='NotAllowedError'||err.name==='PermissionDeniedError') showPermDialog();
+    else if(err.name==='NotFoundError') showErr(lang==='ar'?'لم يتم العثور على كاميرا':'No camera found. Use Upload Photo instead.');
+    else showErr((lang==='ar'?'خطأ في الكاميرا: ':'Camera error: ')+err.message);
+  }
+}
+function stopCamera(){ stream?.getTracks().forEach(t=>t.stop()); stream=null; torchOn=false; document.getElementById('btnTorch').classList.remove('lit'); document.getElementById('vid').style.display='none'; setCamOverlay(false); showHUD(false); setState('start'); }
+async function flipCam(){ facing=facing==='environment'?'user':'environment'; if(stream){stopCamera();await startCamera();} }
+async function toggleTorch(){ if(!stream) return; const track=stream.getVideoTracks()[0]; try{ torchOn=!torchOn; await track.applyConstraints({advanced:[{torch:torchOn}]}); document.getElementById('btnTorch').classList.toggle('lit',torchOn); } catch{ torchOn=false; toast(lang==='ar'?'المصباح غير مدعوم':'Torch not supported','bad'); } }
+function applyZoom(val){ zoomLvl=val; document.getElementById('zoomVal').textContent=(+val).toFixed(1)+'×'; if(document.getElementById('vid').style.display!=='none') document.getElementById('vid').style.transform=`scale(${val})`; if(demoActive) document.getElementById('demoCanvas').style.transform=`scale(${val})`; }
+function nudgeZoom(delta){ const sl=document.getElementById('zoomSlider'); const nv=Math.min(4,Math.max(1,+sl.value+delta)); sl.value=nv; applyZoom(nv); }
+function updateResLabel(){ if(!stream) return; const s=stream.getVideoTracks()[0].getSettings(); if(s.width) document.getElementById('hudTR').textContent=s.width+'×'+s.height; document.getElementById('hudTR').classList.add('on'); }
+
+/* ═══════════════════════════════════════
+   FILE UPLOAD (IMAGE)
+═══════════════════════════════════════ */
+function triggerUpload(){ document.getElementById('fileInput').click(); }
+function handleFileSelect(e){
+  const file=e.target.files&&e.target.files[0]; if(!file) return;
+  if(!file.type.startsWith('image/')){ toast(lang==='ar'?'يرجى اختيار ملف صورة':'Please select an image file','bad'); return; }
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const imgData=ev.target.result;
+    const prev=document.getElementById('prevImg'); prev.src=imgData; prev.style.display='block';
+    document.getElementById('camPH').style.display='none'; document.getElementById('vid').style.display='none'; document.getElementById('demoCanvas').style.display='none';
+    setCamOverlay(true); setHUD('still','UPLOADED'); showHUD(true); document.getElementById('scanLn').classList.remove('on');
+    doAnalyze(imgData,imgData.split(',')[1],false,true); e.target.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════
+   DEMO SCENE
+═══════════════════════════════════════ */
+function startDemoMode(){ demoActive=true; renderScene(); setState('demo'); setHUD('demo','DEMO'); showHUD(true); document.getElementById('demoBadge').classList.add('on'); document.getElementById('zoomStrip').classList.add('on'); document.getElementById('camPH').style.display='none'; toast((lang==='ar'?'المشهد: ':'')+SCENES[sceneIdx][lang==='ar'?'name_ar':'name_en'],'inf'); }
+function stopDemoMode(){ demoActive=false; cancelAnimationFrame(demoAnim); document.getElementById('demoCanvas').style.display='none'; document.getElementById('demoBadge').classList.remove('on'); document.getElementById('camPH').style.display='flex'; setCamOverlay(false); showHUD(false); setState('start'); document.getElementById('zoomStrip').classList.remove('on'); }
+function nextScene(){ sceneIdx=(sceneIdx+1)%SCENES.length; renderScene(); toast((lang==='ar'?'المشهد: ':'')+SCENES[sceneIdx][lang==='ar'?'name_ar':'name_en'],'inf'); }
+function renderScene(){
+  cancelAnimationFrame(demoAnim);
+  const cvs=document.getElementById('demoCanvas'),vp=document.getElementById('camVP');
+  const dpr=window.devicePixelRatio||1;
+  cvs.width=vp.offsetWidth*dpr; cvs.height=vp.offsetHeight*dpr;
+  cvs.style.width='100%'; cvs.style.height='100%'; cvs.style.display='block';
+  const ctx=cvs.getContext('2d'); ctx.scale(dpr,dpr);
+  const w=vp.offsetWidth,h=vp.offsetHeight,scene=SCENES[sceneIdx];
+  scene.draw(ctx,w,h);
+  ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,w,38);
+  ctx.fillStyle='#f5a623'; ctx.font=`bold 11px 'Space Mono',monospace`;
+  const name=lang==='ar'?scene.name_ar:scene.name_en;
+  if(lang==='ar'){ ctx.textAlign='right'; ctx.fillText(`${scene.emoji}  ${name}  ◀`,w-14,24); }
+  else { ctx.textAlign='left'; ctx.fillText(`▶  ${scene.emoji}  ${name}`,14,24); }
+  ctx.textAlign='left';
+  let t2=0;
+  function frame(){ if(!demoActive) return;
+    ctx.clearRect(w-110,4,106,26); ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(w-110,4,106,26);
+    ctx.fillStyle='#5a6880'; ctx.font=`9px 'Space Mono',monospace`; ctx.textAlign='right';
+    ctx.fillText(new Date().toLocaleTimeString('en-GB'),w-12,22); ctx.textAlign='left';
+    const ly=((Math.sin(t2*.018)+1)/2)*(h-40)+38;
+    ctx.fillStyle=`rgba(245,166,35,${.025+Math.sin(t2*.04)*.01})`; ctx.fillRect(0,ly,w,2);
+    t2++; demoAnim=requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ═══════════════════════════════════════
+   CAPTURE + ANALYZE
+═══════════════════════════════════════ */
+function captureAndAnalyze(){
+  const vid=document.getElementById('vid'); const cvs=document.createElement('canvas');
+  cvs.width=vid.videoWidth||640; cvs.height=vid.videoHeight||480;
+  cvs.getContext('2d').drawImage(vid,0,0);
+  const imgData=cvs.toDataURL('image/jpeg',.88);
+  const prev=document.getElementById('prevImg'); prev.src=imgData; prev.style.display='block';
+  document.getElementById('vid').style.display='none'; document.getElementById('scanLn').classList.remove('on');
+  stream?.getTracks().forEach(t=>t.stop()); stream=null;
+  doAnalyze(imgData,imgData.split(',')[1],false,false);
+}
+
+function runDemoAnalysis(){
+  const cvs=document.getElementById('demoCanvas'); const imgData=cvs.toDataURL('image/png');
+  const prev=document.getElementById('prevImg'); prev.src=imgData; prev.style.display='block';
+  document.getElementById('demoCanvas').style.display='none'; cancelAnimationFrame(demoAnim);
+  document.getElementById('scanLn').classList.remove('on'); demoActive=false;
+  doAnalyze(imgData,null,true,false);
+}
+
+async function doAnalyze(imgData,base64,isDemo,isUpload){
+  const mimeType=imgData&&imgData.startsWith('data:')?(imgData.split(';')[0].split(':')[1]):'image/jpeg';
+  setHUD('still',isUpload?'UPLOADED':'CAPTURED'); setCamOverlay(true);
+  document.getElementById('scanLn').classList.remove('on'); setState('retake'); showAnalyzing(true);
+
+  // Show docs cross-reference notice if docs loaded
+  const docsNote=document.getElementById('aiDocsNote');
+  const docsNoteTxt=document.getElementById('aiDocsNoteTxt');
+  const hasDocs=complianceDocs.length>0&&apiKey&&!isDemoMode&&!isDemo;
+  docsNote.classList.toggle('on',hasDocs);
+  if(hasDocs&&docsNoteTxt) docsNoteTxt.textContent=t('crossRef');
+
+  const steps=t('aiSteps'); const pcts=[8,22,42,62,80,100]; let si=0;
+  const ti=setInterval(()=>{ if(si<steps.length){ document.getElementById('aiStep').textContent=steps[si]; document.getElementById('aiFill').style.width=pcts[si]+'%'; si++; } },680);
+  const area=document.getElementById('areaSel').value;
+  const ts=new Date().toLocaleString(lang==='ar'?'ar-SA':'en-GB');
+
+  try{
+    let result;
+    if(isDemo||(isDemoMode&&!apiKey)){
+      await new Promise(r=>setTimeout(r,3800));
+      const sc=SCENES[sceneIdx];
+      result=lang==='ar'?sc.result_ar:sc.result_en;
+    } else {
+      const isAr=lang==='ar';
+      const sysPrompt=isAr
+        ?`أنت ضابط ضمان جودة أول ومتخصص HACCP بخبرة 20 عاماً. حلّل الصورة للكشف عن مخاطر السلامة وانتهاكات النظافة الصحية والعيوب الهيكلية ومشاكل الصيانة. ${complianceDocs.length>0?'استخدم وثائق الامتثال المرفقة كمراجع أساسية في تحليلك وربط المخالفات بها بدقة علمية.':''} استجب فقط بـ JSON صحيح — بدون أي نص قبله أو بعده. جميع النصوص الوصفية بالعربية الفصحى العلمية. احتفظ بـ severity وtimeframe وoverallRisk بالإنجليزية.`
+        :`You are a Senior Quality Assurance Officer and HACCP Specialist with 20 years experience. Analyse the image for safety hazards, hygiene violations, structural defects, and maintenance issues.${complianceDocs.length>0?' Cross-reference findings against the provided compliance documents and cite specific clauses where relevant.':''} Respond ONLY with valid JSON — no text before or after.`;
+      const userPrompt=isAr
+        ?`افحص منطقة "${area}". أرجع فقط JSON:\n{"overallRisk":"Low|Medium|High|Critical","riskScore":0-100,"defects":[{"defectName":"","severity":"Low|Medium|High|Critical","description":"","regulation":"","correctiveActions":[""],"assignee":"","timeframe":"immediate|within 24h|within 7 days|within 30 days"}],"passedChecks":[],"inspectorNote":""}`
+        :`Inspect this "${area}" area. Return ONLY this JSON:\n{"overallRisk":"Low|Medium|High|Critical","riskScore":0-100,"defects":[{"defectName":"","severity":"Low|Medium|High|Critical","description":"","regulation":"","correctiveActions":[""],"assignee":"","timeframe":"immediate|within 24h|within 7 days|within 30 days"}],"passedChecks":[],"inspectorNote":""}`;
+
+      // Build content array — prepend compliance docs as file references
+      const contentArr=[
+        ...complianceDocs.map(d=>({
+          type:'document',
+          source:{ type:'file', file_id:d.fileId },
+          title:d.name
+        })),
+        { type:'image', source:{ type:'base64', media_type:mimeType, data:base64 } },
+        { type:'text', text:userPrompt }
+      ];
+
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key':apiKey,
+          'anthropic-version':'2023-06-01',
+          'anthropic-beta':FILES_BETA,
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({
+          model:'claude-haiku-4-5-20251001',
+          max_tokens:2048,
+          system:sysPrompt,
+          messages:[{ role:'user', content:contentArr }]
+        })
+      });
+      if(!resp.ok){ const err=await resp.json().catch(()=>({})); throw new Error(err.error?.message||'HTTP '+resp.status); }
+      const data=await resp.json();
+      let raw=(data.content[0].text||'').replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+      const jsonMatch=raw.match(/\{[\s\S]*\}/);
+      if(!jsonMatch) throw new Error(lang==='ar'?'لم يُعثر على JSON. حاول مرة أخرى.':'No JSON found. Try again.');
+      result=JSON.parse(jsonMatch[0]);
+    }
+
+    clearInterval(ti); showAnalyzing(false);
+    const rec={id:Date.now(),result,area,ts,imgData,lang,usedDocs:hasDocs?complianceDocs.map(d=>d.name):[]};
+    inspections.unshift(rec); renderFindings(rec); updateDashboard(); addHistory(rec); updateBadge();
+    if(document.getElementById('togAutoRes').classList.contains('on')){
+      (result.defects||[]).forEach((d,i)=>{ if(d.severity==='Low') resolved[`${rec.id}-${i}`]=true; }); updateDashboard();
+    }
+    goPage('findings');
+    const cnt=result.defects?.length||0;
+    toast(cnt>0?(lang==='ar'?`تم اكتشاف ${cnt} مخالفة — ${area}`:`${cnt} issue(s) found — ${area}`):(lang==='ar'?`لا مخالفات — ${area}`:`No issues — ${area}`),cnt>0?'bad':'ok');
+  } catch(err){
+    clearInterval(ti); showAnalyzing(false); setCamOverlay(false); showHUD(false);
+    showErr((lang==='ar'?'فشل التحليل: ':'Analysis failed: ')+err.message);
+    setState('start'); document.getElementById('prevImg').style.display='none'; document.getElementById('camPH').style.display='flex';
+    toast(lang==='ar'?'خطأ في التحليل — تحقق من مفتاح API':'Analysis error — check API key','bad');
+  }
+}
+
+function retake(){
+  stream?.getTracks().forEach(t=>t.stop()); stream=null; demoActive=false; cancelAnimationFrame(demoAnim);
+  document.getElementById('prevImg').style.display='none'; document.getElementById('vid').style.display='none'; document.getElementById('demoCanvas').style.display='none';
+  setCamOverlay(false); showHUD(false); document.getElementById('hudTR').classList.remove('on'); document.getElementById('demoBadge').classList.remove('on'); document.getElementById('zoomStrip').classList.remove('on');
+  document.getElementById('aiDocsNote').classList.remove('on');
+  document.getElementById('camPH').style.display='flex'; setState('start'); hideErr();
+}
+
+/* ═══════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════ */
+function setState(s){
+  document.getElementById('rowStart').style.display   =s==='start'  ?'block':'none';
+  document.getElementById('rowCapture').style.display =s==='capture'?'block':'none';
+  document.getElementById('rowDemo').style.display    =s==='demo'   ?'block':'none';
+  document.getElementById('rowRetake').style.display  =s==='retake' ?'block':'none';
+  document.getElementById('zoomStrip').classList.toggle('on',s==='capture'||s==='demo');
+  if(s!=='capture') document.getElementById('hudTR').classList.remove('on');
+}
+function setCamOverlay(on){ ['cTL','cTR','cBL','cBR'].forEach(id=>document.getElementById(id).classList.toggle('on',on)); document.getElementById('scanLn').classList.toggle('on',on&&!!stream); document.getElementById('camGrid').classList.toggle('on',on&&(!!stream||demoActive)); document.getElementById('sideCtrl').classList.toggle('on',on&&!!stream); }
+function setHUD(type,text){ document.getElementById('hudDot').className='hud-dot '+type; document.getElementById('hudTxt').textContent=text; }
+function showHUD(on){ document.getElementById('hudTL').classList.toggle('on',on); }
+function showAnalyzing(on){ document.getElementById('analyzing').classList.toggle('on',on); }
+function showErr(msg){ const e=document.getElementById('errStrip'); e.textContent=msg; e.classList.add('on'); }
+function hideErr(){ document.getElementById('errStrip').classList.remove('on'); }
+function showPermDialog(){ document.getElementById('permOverlay').classList.add('on'); }
+function hidePerm(){ document.getElementById('permOverlay').classList.remove('on'); }
+
+/* ═══════════════════════════════════════
+   FINDINGS RENDER
+═══════════════════════════════════════ */
+const TF={'immediate':'tf-imm','within 24h':'tf-24h','within 7 days':'tf-7d','within 30 days':'tf-30d'};
+const SEV_CLS={Critical:'sev-C',High:'sev-H',Medium:'sev-M',Low:'sev-L'};
+
+function renderFindings(rec){
+  const cont=document.getElementById('findCont'); cont.querySelector('.empty-pg')?.remove();
+  updateRiskCard(); document.getElementById('chipsRow').style.display='flex';
+  const {result,area,ts,id}=rec; const recLang=rec.lang||'en';
+  const lbl=T[recLang];
+
+  // Docs used banner
+  if(rec.usedDocs&&rec.usedDocs.length>0){
+    const el=document.createElement('div');
+    el.style.cssText='background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:11px;color:#d8b4fe';
+    const docNames=rec.usedDocs.join(', ');
+    el.innerHTML=`<span style="font-size:16px">📎</span><span style="font-family:${recLang==='ar'?'Cairo':'var(--mono)'},monospace;font-size:10px">${recLang==='ar'?`تم الاستشهاد بـ: ${docNames}`:`Referenced: ${docNames}`}</span>`;
+    cont.insertBefore(el,cont.firstChild);
+  }
+
+  if(result.passedChecks?.length){
+    const el=document.createElement('div'); el.className='pass-card';
+    el.innerHTML=`<div class="pass-head"><span style="font-size:20px">✅</span><div class="pass-name">${lbl.passedChecks||'Passed'} — ${area}</div></div>
+    <div class="pass-items">${result.passedChecks.map(c=>`<div class="pass-item"><span class="pass-ck">✓</span>${c}</div>`).join('')}</div>`;
+    cont.insertBefore(el,cont.firstChild);
+  }
+  if(!result.defects?.length&&!result.passedChecks?.length){
+    const el=document.createElement('div'); el.className='pass-card';
+    el.innerHTML=`<div class="pass-head"><span style="font-size:20px">✅</span><div class="pass-name">${recLang==='ar'?'لا مخالفات':'No Issues'} — ${area}</div></div><div style="font-size:11px;color:#86efac;font-family:var(--mono);margin-top:4px">${ts}</div>`;
+    cont.insertBefore(el,cont.firstChild); return;
+  }
+  (result.defects||[]).forEach((d,i)=>{
+    const el=document.createElement('div'); el.className='def-card'; el.id=`dc-${id}-${i}`; el.dataset.sev=d.severity;
+    const tf=TF[d.timeframe]||''; const sc=SEV_CLS[d.severity]||'sev-L';
+    const sevDisp=(lbl.sevLabels||T.en.sevLabels)[d.severity]||d.severity;
+    const tfDisp=(lbl.tfLabels||T.en.tfLabels)[d.timeframe]||d.timeframe;
+    const steps=(d.correctiveActions||[]).map((a,j)=>`<div class="act-item"><div class="act-num">${j+1}</div><div class="act-txt">${a}</div></div>`).join('');
+    el.innerHTML=`
+      <div class="def-head">
+        <div style="flex:1"><div class="def-area">${area}</div><div class="def-name" id="dn-${id}-${i}">${d.defectName}</div></div>
+        <span class="sev ${sc}">${sevDisp}</span>
+      </div>
+      <div class="def-body">
+        <div><div class="f-lbl">${lbl.observation||'Observation'}</div><div class="f-val">${d.description}</div></div>
+        ${d.regulation?`<div><div class="f-lbl">${lbl.regulation||'Regulation'}</div><span class="reg-pill">${d.regulation}</span></div>`:''}
+        <div><div class="f-lbl">${lbl.correctiveActions||'Corrective Action Plan'}</div><div class="act-list">${steps}</div></div>
+        <div class="meta-row">
+          <div class="assign-pill">👤 ${d.assignee||'—'}</div>
+          <div class="tf-lbl ${tf}">⏱ ${tfDisp}</div>
+        </div>
+        ${result.inspectorNote?`<div class="insp-note" style="background:var(--card3);border-left:2px solid var(--amber);padding:9px 11px;border-radius:7px;font-size:11px;color:var(--text3);line-height:1.65">💬 ${result.inspectorNote}</div>`:''}
+      </div>
+      <div class="def-foot">
+        <div class="ts-txt">${ts}</div>
+        <div class="foot-btns">
+          <button class="f-btn shr-btn rpl" onclick="shareDefect(${id},${i})">${lbl.share||'⎘ Share'}</button>
+          <button class="f-btn res-btn rpl" id="rb-${id}-${i}" onclick="toggleRes(${id},${i})">${lbl.resolve||'○ Resolve'}</button>
+        </div>
+      </div>`;
+    cont.insertBefore(el,cont.firstChild);
+  });
+  applyFilter();
+}
+
+function toggleRes(id,i){
+  const key=`${id}-${i}`; resolved[key]=!resolved[key];
+  const card=document.getElementById(`dc-${id}-${i}`),btn=document.getElementById(`rb-${id}-${i}`),name=document.getElementById(`dn-${id}-${i}`);
+  const rec=inspections.find(r=>r.id==id); const recLang=rec?.lang||'en';
+  if(resolved[key]){ card.classList.add('done'); btn.classList.add('done'); btn.textContent=T[recLang].done||'✓ Done'; if(name) name.classList.add('done'); toast(lang==='ar'?'تمت المعالجة ✓':'Marked resolved ✓','ok'); }
+  else { card.classList.remove('done'); btn.classList.remove('done'); btn.textContent=T[recLang].resolve||'○ Resolve'; if(name) name.classList.remove('done'); }
+  updateDashboard(); applyFilter();
+}
+
+function shareDefect(id,i){
+  const rec=inspections.find(r=>r.id==id); if(!rec) return;
+  const d=rec.result.defects[i]; const lbl=T[rec.lang||'en']; const isAr=rec.lang==='ar';
+  const txt=isAr
+    ?`تقرير QualityEye\nالمنطقة: ${rec.area}\nالخلل: ${d.defectName}\nالخطورة: ${(lbl.sevLabels||{})[d.severity]||d.severity}\n${d.description}\nالمرجع: ${d.regulation||'—'}\nالإجراءات:\n${d.correctiveActions.map((a,k)=>`  ${k+1}. ${a}`).join('\n')}\nالمسؤول: ${d.assignee} | الإطار: ${(lbl.tfLabels||{})[d.timeframe]||d.timeframe}\n${rec.ts}`
+    :`QualityEye Finding\nArea: ${rec.area}\nDefect: ${d.defectName}\nSeverity: ${d.severity}\n${d.description}\nRef: ${d.regulation||'N/A'}\nActions:\n${d.correctiveActions.map((a,k)=>`  ${k+1}. ${a}`).join('\n')}\nAssignee: ${d.assignee} | Timeframe: ${d.timeframe}\n${rec.ts}`;
+  if(navigator.share) navigator.share({title:'QualityEye',text:txt}).catch(()=>{});
+  else navigator.clipboard?.writeText(txt).then(()=>toast(lang==='ar'?'تم النسخ':'Copied','ok')).catch(()=>toast('Error','bad'));
+}
+
+function applyFilter(){
+  document.querySelectorAll('.def-card').forEach(c=>{
+    if(filter==='all'){ c.style.display=''; return; }
+    if(filter==='resolved'){ c.style.display=c.classList.contains('done')?'':'none'; return; }
+    c.style.display=(c.dataset.sev===filter)?'':'none';
+  });
+}
+
+function updateRiskCard(){
+  if(!inspections.length) return;
+  const avg=Math.round(inspections.reduce((a,r)=>a+(r.result.riskScore||0),0)/inspections.length);
+  const clr=avg>70?'var(--red2)':avg>40?'var(--amber2)':'var(--green2)';
+  document.getElementById('riskCard').classList.add('on');
+  document.getElementById('riskNum').textContent=avg; document.getElementById('riskNum').style.color=clr;
+  document.getElementById('riskFill').style.width=avg+'%'; document.getElementById('riskFill').style.background=clr;
+  document.getElementById('riskLbl').textContent=avg>70?t('riskHigh'):avg>40?t('riskMed'):t('riskLow');
+}
+
+/* ═══════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════ */
+function updateDashboard(){
+  const all=inspections.flatMap(r=>r.result.defects||[]);
+  const crit=all.filter(d=>d.severity==='Critical').length,high=all.filter(d=>d.severity==='High').length;
+  const med=all.filter(d=>d.severity==='Medium').length,low=all.filter(d=>d.severity==='Low').length;
+  const res=Object.values(resolved).filter(Boolean).length;
+  document.getElementById('dTotal').textContent=inspections.length;
+  document.getElementById('dIssues').textContent=all.length; document.getElementById('dFixed').textContent=res;
+  document.getElementById('dCrit').textContent=crit+high; document.getElementById('dMinor').textContent=med+low;
+  document.getElementById('dSC').textContent=crit; document.getElementById('dSH').textContent=high;
+  document.getElementById('dSM').textContent=med; document.getElementById('dSL').textContent=low;
+  const areas=inspections.reduce((acc,r)=>{ const c=(r.result.defects||[]).length; acc[r.area]=(acc[r.area]||0)+c; return acc; },{});
+  const rows=document.getElementById('areaRows'),maxV=Math.max(...Object.values(areas),1);
+  rows.innerHTML=Object.keys(areas).length
+    ?Object.entries(areas).sort((a,b)=>b[1]-a[1]).map(([a,c])=>`<div class="ar-item"><div class="ar-name">${a}</div><div class="ar-trk"><div class="ar-fill" style="width:${(c/maxV*100)}%"></div></div><div class="ar-cnt">${c}</div></div>`).join('')
+    :`<div style="color:var(--text3);font-family:var(--mono);font-size:11px;text-align:center;padding:20px 0">${t('noData')}</div>`;
+}
+function updateBadge(){ const cnt=inspections.flatMap(r=>r.result.defects||[]).length; const b=document.getElementById('navBadge'); if(cnt>0){b.textContent=cnt>99?'99+':cnt;b.classList.add('on');}else b.classList.remove('on'); }
+
+/* ═══════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════ */
+function addHistory(rec){
+  const cont=document.getElementById('histCont'); cont.querySelector('.empty-pg')?.remove();
+  const cnt=rec.result.defects?.length||0,risk=rec.result.overallRisk||'Low';
+  const clr=risk==='Critical'?'var(--red2)':risk==='High'?'var(--amber2)':risk==='Medium'?'var(--yellow)':'var(--green2)';
+  const recLang=rec.lang||'en'; const riskDisp=(T[recLang].riskLabels||T.en.riskLabels)[risk]||risk;
+  const el=document.createElement('div'); el.className='hist-item rpl';
+  el.addEventListener('touchstart',ripple,{passive:true}); el.onclick=()=>goPage('findings');
+  el.innerHTML=`<div class="hist-thumb">${rec.imgData?`<img src="${rec.imgData}" alt="">`:` <div class="hist-ph">📸</div>`}</div>
+    <div class="hist-info"><div class="hist-area">${rec.area}</div><div class="hist-meta">${rec.ts} · ${cnt} ${recLang==='ar'?'مخالفة':'issue(s)'}${rec.usedDocs?.length?' · 📎':''}</div></div>
+    <div class="hist-risk"><div class="hist-rl" style="color:${clr}">${riskDisp}</div><div class="hist-rs">${rec.result.riskScore||0}/100</div></div>`;
+  cont.insertBefore(el,cont.firstChild);
+}
+
+/* ═══════════════════════════════════════
+   EXPORT — HTML REPORT
+═══════════════════════════════════════ */
+function buildReportHTML(forLang){
+  const isAr=forLang==='ar'; const lbl=T[forLang]; const dir=isAr?'rtl':'ltr';
+  const fontFam=isAr?"'Cairo','Arial',sans-serif":"'Segoe UI','Arial',sans-serif";
+  const now=new Date().toLocaleString(isAr?'ar-SA':'en-GB');
+  let body='';
+  inspections.forEach((rec,idx)=>{
+    const r=rec.result; const recLbl=T[rec.lang||'en'];
+    const riskDisp=(lbl.riskLabels||T.en.riskLabels)[r.overallRisk]||r.overallRisk;
+    const riskColor=r.overallRisk==='Critical'||r.overallRisk==='High'?'#e8394a':r.overallRisk==='Medium'?'#f5c842':'#22c55e';
+    body+=`<div style="page-break-inside:avoid;margin-bottom:28px;border:1px solid #ddd;border-radius:10px;overflow:hidden">
+      <div style="background:#0a0c0f;color:#f5a623;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+        <span style="font-weight:800;font-size:14px">#${idx+1} — ${rec.area}</span>
+        <span style="font-size:11px;color:#a0aab8">${rec.ts}${rec.usedDocs?.length?' · 📎 '+rec.usedDocs.length+' docs':''}</span>
+      </div>
+      <div style="padding:14px 18px;background:#fafafa;border-bottom:1px solid #eee;display:flex;gap:24px;flex-wrap:wrap;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+        <div><span style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">${lbl.riskLevel}</span><br><strong style="color:${riskColor};font-size:18px">${riskDisp}</strong></div>
+        <div><span style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">${lbl.riskScore}</span><br><strong style="font-size:18px">${r.riskScore}/100</strong></div>
+        <div><span style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px">${lbl.issues}</span><br><strong style="font-size:18px;color:#e8394a">${(r.defects||[]).length}</strong></div>
+      </div>`;
+    if(rec.usedDocs?.length){
+      body+=`<div style="padding:8px 18px;background:#faf5ff;border-bottom:1px solid #e9d8fd">
+        <span style="font-size:11px;color:#6b21a8">📎 ${isAr?'وثائق مرجعية مستخدمة: ':'Referenced documents: '}${rec.usedDocs.join(', ')}</span></div>`;
+    }
+    if(r.passedChecks?.length){
+      body+=`<div style="padding:12px 18px;background:#f0fff4;border-bottom:1px solid #c6f6d5">
+        <div style="font-size:10px;font-weight:700;color:#276749;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✅ ${lbl.passed}</div>
+        ${r.passedChecks.map(c=>`<div style="font-size:12px;color:#2f855a;padding:2px 0">✓ ${c}</div>`).join('')}
+      </div>`;
+    }
+    (r.defects||[]).forEach((d,di)=>{
+      const sevColor={Critical:'#e8394a',High:'#f5a623',Medium:'#d69e2e',Low:'#22c55e'}[d.severity]||'#666';
+      const sevBg={Critical:'#fff5f5',High:'#fffaf0',Medium:'#fffff0',Low:'#f0fff4'}[d.severity]||'#fff';
+      const sevDisp=(lbl.sevLabels||T.en.sevLabels)[d.severity]||d.severity;
+      const tfDisp=(lbl.tfLabels||T.en.tfLabels)[d.timeframe]||d.timeframe;
+      const resKey=`${rec.id}-${di}`;
+      body+=`<div style="padding:14px 18px;border-bottom:1px solid #eee;background:${resolved[resKey]?'#f7f7f7':'#fff'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+          <div style="font-weight:700;font-size:14px;${resolved[resKey]?'text-decoration:line-through;color:#999':''}">${d.defectName}</div>
+          <span style="background:${sevBg};color:${sevColor};border:1px solid ${sevColor};padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap">${sevDisp}</span>
+        </div>
+        <div style="margin-bottom:8px"><div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${lbl.desc}</div><div style="font-size:12px;color:#444;line-height:1.7">${d.description}</div></div>
+        ${d.regulation?`<div style="margin-bottom:8px"><span style="background:#fffbf0;color:#b7791f;border:1px solid #f6ad55;padding:3px 10px;border-radius:5px;font-size:11px">⚖ ${d.regulation}</span></div>`:''}
+        <div style="margin-bottom:8px"><div style="font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${lbl.actions}</div>${d.correctiveActions.map((a,k)=>`<div style="display:flex;gap:8px;margin-bottom:5px;flex-direction:${dir==='rtl'?'row-reverse':'row'}"><span style="min-width:22px;height:22px;background:#fff7ed;color:#c05621;border:1px solid #fed7aa;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${k+1}</span><span style="font-size:12px;color:#444;line-height:1.65">${a}</span></div>`).join('')}</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+          <div><span style="font-size:10px;color:#888">👤 ${lbl.responsible}:</span> <strong style="font-size:12px">${d.assignee}</strong></div>
+          <div><span style="font-size:10px;color:#888">⏱ ${lbl.tf}:</span> <strong style="font-size:12px;color:${d.timeframe==='immediate'?'#e8394a':d.timeframe==='within 24h'?'#f57c23':'#276749'}">${tfDisp}</strong></div>
+          ${resolved[resKey]?`<div><span style="color:#22c55e;font-weight:700;font-size:12px">✓ ${isAr?'تمت المعالجة':'Resolved'}</span></div>`:''}
+        </div>
+        ${r.inspectorNote&&di===0?`<div style="margin-top:10px;background:#fffbf0;border-${dir==='rtl'?'right':'left'}:3px solid #f5a623;padding:8px 12px;border-radius:5px;font-size:11px;color:#744210">💬 ${r.inspectorNote}</div>`:''}
+      </div>`;
+    });
+    body+='</div>';
+  });
+  const allD=inspections.flatMap(r=>r.result.defects||[]);
+  const docsSection=complianceDocs.length?`<div style="background:#faf5ff;border:1px solid #e9d8fd;border-radius:10px;padding:14px 20px;margin-bottom:20px"><div style="font-size:11px;font-weight:700;color:#6b21a8;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">📎 ${isAr?'وثائق الامتثال المرجعية':'Compliance Reference Documents'}</div>${complianceDocs.map(d=>`<div style="font-size:12px;color:#553c9a;padding:3px 0">• ${d.name} (${(d.size/1024/1024).toFixed(2)} MB)</div>`).join('')}</div>`:'';
+  return `<!DOCTYPE html><html lang="${forLang}" dir="${dir}">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${lbl.reportTitle}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>body{font-family:${fontFam};color:#1a1a1a;background:#f8f9fa;margin:0;padding:0;direction:${dir}}.page{max-width:820px;margin:0 auto;background:#fff;box-shadow:0 2px 30px rgba(0,0,0,.1)}@media print{body{background:#fff}.no-print{display:none}.page{box-shadow:none;max-width:100%}@page{margin:1.5cm}}</style>
+</head><body><div class="page">
+  <div style="background:linear-gradient(135deg,#0a0c0f,#12161c);padding:28px 32px;display:flex;align-items:center;justify-content:space-between;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+    <div style="display:flex;align-items:center;gap:14px;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,#f5a623,#ffbe4d);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:grid;place-items:center;font-size:18px">👁</div>
+      <div><div style="color:#fff;font-size:22px;font-weight:900">Quality<span style="color:#f5a623">Eye</span></div><div style="color:#5a6880;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-top:2px">${lbl.brandTag||'AI COMPLIANCE INSPECTOR'}</div></div>
+    </div>
+    <div style="text-align:${dir==='rtl'?'left':'right'}"><div style="color:#f5a623;font-size:18px;font-weight:800">${lbl.reportTitle}</div><div style="color:#a0aab8;font-size:11px;margin-top:4px">${lbl.sessionId}: ${SID}</div><div style="color:#a0aab8;font-size:11px">${lbl.date}: ${now}</div></div>
+  </div>
+  <div style="background:#12161c;padding:16px 32px;display:flex;gap:32px;flex-wrap:wrap;flex-direction:${dir==='rtl'?'row-reverse':'row'}">
+    <div style="text-align:center"><div style="color:#a0aab8;font-size:9px;text-transform:uppercase;letter-spacing:1.5px">${lbl.scans||'Scans'}</div><div style="color:#fff;font-size:26px;font-weight:800">${inspections.length}</div></div>
+    <div style="text-align:center"><div style="color:#a0aab8;font-size:9px;text-transform:uppercase;letter-spacing:1.5px">${lbl.issues||'Issues'}</div><div style="color:#ff5566;font-size:26px;font-weight:800">${allD.length}</div></div>
+    <div style="text-align:center"><div style="color:#a0aab8;font-size:9px;text-transform:uppercase;letter-spacing:1.5px">${isAr?'بالغة/عالية':'Critical/High'}</div><div style="color:#ffbe4d;font-size:26px;font-weight:800">${allD.filter(d=>d.severity==='Critical'||d.severity==='High').length}</div></div>
+    <div style="text-align:center"><div style="color:#a0aab8;font-size:9px;text-transform:uppercase;letter-spacing:1.5px">${lbl.fixed||'Fixed'}</div><div style="color:#4ade80;font-size:26px;font-weight:800">${Object.values(resolved).filter(Boolean).length}</div></div>
+    ${complianceDocs.length?`<div style="text-align:center"><div style="color:#a0aab8;font-size:9px;text-transform:uppercase;letter-spacing:1.5px">📎 DOCS</div><div style="color:#d8b4fe;font-size:26px;font-weight:800">${complianceDocs.length}</div></div>`:''}
+  </div>
+  <div class="no-print" style="background:#fff7ed;padding:10px 20px;text-align:center;border-bottom:1px solid #fed7aa">
+    <button onclick="window.print()" style="background:linear-gradient(135deg,#f5a623,#ffbe4d);color:#000;font-weight:800;font-size:14px;padding:10px 28px;border-radius:10px;border:none;cursor:pointer">🖨 ${isAr?'طباعة / حفظ PDF':'Print / Save as PDF'}</button>
+  </div>
+  <div style="padding:24px 32px">${docsSection}${body}</div>
+  <div style="background:#0a0c0f;padding:16px 32px;text-align:center;color:#5a6880;font-size:10px">QualityEye v5 — ${lbl.reportTitle} — ${now}</div>
+</div></body></html>`;
+}
+
+function exportPdf(){
+  if(!inspections.length){ toast(t('noExport'),'inf'); return; }
+  const win=window.open('','_blank');
+  if(!win){ toast(lang==='ar'?'السماح بالنوافذ المنبثقة مطلوب':'Allow pop-ups to export PDF','bad'); return; }
+  win.document.write(buildReportHTML(lang)); win.document.close();
+  toast(lang==='ar'?'جارٍ فتح نافذة الطباعة…':'Opening print window…','ok');
+}
+function exportWord(){
+  if(!inspections.length){ toast(t('noExport'),'inf'); return; }
+  const blob=new Blob(['\ufeff'+buildReportHTML(lang)],{type:'application/msword;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`QualityEye_${SID}.doc`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast(lang==='ar'?'تم تصدير Word ✓':'Word exported ✓','ok');
+}
+function exportExcel(){
+  if(!inspections.length){ toast(t('noExport'),'inf'); return; }
+  if(typeof XLSX==='undefined'){ toast('XLSX loading, try again','bad'); return; }
+  const isAr=lang==='ar'; const lbl=T[lang];
+  const headers=[lbl.date||'Date',lbl.area2||'Area',lbl.riskLevel||'Risk Level',lbl.riskScore||'Risk Score',lbl.defect||'Defect',lbl.sevLabel||'Severity',lbl.desc||'Description',lbl.ref||'Regulation',lbl.responsible||'Assignee',lbl.tf||'Timeframe',lbl.actions||'Corrective Actions',isAr?'الحالة':'Status',isAr?'وثائق مستخدمة':'Docs Used'];
+  const rows=[headers];
+  inspections.forEach(rec=>{
+    const recLbl=T[rec.lang||'en']; const riskDisp=(lbl.riskLabels||T.en.riskLabels)[rec.result.overallRisk]||rec.result.overallRisk;
+    const docsUsed=rec.usedDocs?.join(', ')||'—';
+    if(!rec.result.defects?.length){
+      rows.push([rec.ts,rec.area,riskDisp,rec.result.riskScore,isAr?'لا مخالفات':'No Issues','—','—','—','—','—','—',isAr?'ناجح':'Pass',docsUsed]);
+    } else {
+      rec.result.defects.forEach((d,di)=>{
+        const sevDisp=(lbl.sevLabels||T.en.sevLabels)[d.severity]||d.severity;
+        const tfDisp=(lbl.tfLabels||T.en.tfLabels)[d.timeframe]||d.timeframe;
+        const resKey=`${rec.id}-${di}`;
+        rows.push([rec.ts,rec.area,riskDisp,rec.result.riskScore,d.defectName,sevDisp,d.description,d.regulation||'—',d.assignee,tfDisp,(d.correctiveActions||[]).join(' | '),resolved[resKey]?(isAr?'تمت المعالجة':'Resolved'):(isAr?'معلقة':'Pending'),docsUsed]);
+      });
+    }
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:18},{wch:22},{wch:12},{wch:10},{wch:35},{wch:14},{wch:50},{wch:30},{wch:18},{wch:16},{wch:60},{wch:12},{wch:30}];
+  XLSX.utils.book_append_sheet(wb,ws,lbl.excelSheet||'Report');
+  // Compliance docs sheet
+  if(complianceDocs.length){
+    const dRows=[[isAr?'اسم الوثيقة':'Document Name',isAr?'معرف الملف':'File ID',isAr?'الحجم':'Size',isAr?'تاريخ الرفع':'Uploaded']];
+    complianceDocs.forEach(d=>dRows.push([d.name,d.fileId,(d.size/1024/1024).toFixed(2)+' MB',d.uploadedAt]));
+    const ws3=XLSX.utils.aoa_to_sheet(dRows); ws3['!cols']=[{wch:35},{wch:30},{wch:12},{wch:20}];
+    XLSX.utils.book_append_sheet(wb,ws3,isAr?'وثائق الامتثال':'Compliance Docs');
+  }
+  // Summary sheet
+  const sumData=[[isAr?'ملخص التقرير':'Report Summary',''],[lbl.sessionId||'Session',SID],[lbl.date||'Date',new Date().toLocaleString(isAr?'ar-SA':'en-GB')],[lbl.scans||'Scans',inspections.length],[lbl.issues||'Issues',inspections.flatMap(r=>r.result.defects||[]).length],[isAr?'وثائق مرفقة':'Compliance Docs',complianceDocs.length]];
+  const ws2=XLSX.utils.aoa_to_sheet(sumData); ws2['!cols']=[{wch:25},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws2,isAr?'ملخص':'Summary');
+  XLSX.writeFile(wb,`QualityEye_${SID}.xlsx`);
+  toast(lang==='ar'?'تم تصدير Excel ✓':'Excel exported ✓','ok');
+}
+
+/* ═══════════════════════════════════════
+   CLEAR ALL
+═══════════════════════════════════════ */
+function clearAll(){
+  if(!inspections.length){ toast(t('noData'),'inf'); return; }
+  clearStep++;
+  if(clearStep===1){ toast(lang==='ar'?'اضغط مرة أخرى للتأكيد':'Tap again to confirm — cannot be undone','bad'); setTimeout(()=>{ clearStep=0; },4000); return; }
+  clearStep=0; inspections=[]; resolved={}; filter='all';
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  document.querySelector('.chip[data-f="all"]')?.classList.add('on');
+  document.getElementById('findCont').innerHTML=`<div class="empty-pg"><div class="empty-ico">🔍</div><div class="empty-ttl">${t('noInspections')}</div><div class="empty-sub">${t('noInspSub')}</div><button class="empty-btn rpl" onclick="goPage('capture')">${t('goCapture')}</button></div>`;
+  document.getElementById('riskCard').classList.remove('on');
+  document.getElementById('chipsRow').style.display='none';
+  document.getElementById('histCont').innerHTML=`<div class="empty-pg"><div class="empty-ico">📋</div><div class="empty-ttl">${t('noHistory')}</div></div>`;
+  updateDashboard(); updateBadge();
+  toast(lang==='ar'?'تم مسح جميع البيانات':'All data cleared','inf');
+}
+
+/* ═══════════════════════════════════════
+   TOAST
+═══════════════════════════════════════ */
+let toastTimer;
+function toast(msg,type='inf'){
+  const el=document.getElementById('toast'); el.textContent=msg; el.className=`toast on ${type}`;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('on'),3800);
+}
+</script>
+</body>
+</html>
